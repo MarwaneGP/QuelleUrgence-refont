@@ -156,28 +156,18 @@ export default function OperateurPage() {
   async function handleSubmit() {
     setLoading(true);
     setError(null);
+    setLoading(true);
+
     try {
-      const res = await fetch('/api/triage', {
+      // TODO: Remplacer par le vrai ID de l'opérateur connecté
+      const operatorId = 'current-operator-id';
+
+      const response = await fetch('/api/operators/calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patient: {
-            firstName: form.firstName,
-            lastName: form.lastName,
-            age: parseInt(form.age),
-            gender: form.gender,
-            phone: form.phone,
-            email: form.email,
-          },
-          symptoms: form.symptoms,
-          symptomDescription: form.symptomDescription,
-          durationHours: parseInt(form.durationHours) || 1,
-          hasChronicConditions: form.hasChronicConditions,
-          chronicConditions: form.chronicConditions,
-          hasAllergies: form.hasAllergies,
-          allergies: form.allergies,
-          latitude: parseFloat(form.latitude),
-          longitude: parseFloat(form.longitude),
+          ...callData,
+          operatorId,
         }),
       });
       const data = await res.json();
@@ -190,22 +180,6 @@ export default function OperateurPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function reset() {
-    setForm(INITIAL_FORM);
-    setResult(null);
-    setError(null);
-    setStep('patient');
-  }
-
-  const steps: Step[] = ['patient', 'symptoms', 'location', 'confirm'];
-  const stepLabels: Record<Step, string> = {
-    patient: 'Patient',
-    symptoms: 'Symptômes',
-    location: 'Localisation',
-    confirm: 'Confirmation',
-    result: 'Résultat',
   };
 
   return (
