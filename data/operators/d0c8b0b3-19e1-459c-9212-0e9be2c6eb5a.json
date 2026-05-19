@@ -1,0 +1,9 @@
+{
+  "id": "d0c8b0b3-19e1-459c-9212-0e9be2c6eb5a",
+  "firstName": "Test",
+  "lastName": "Name",
+  "email": "test.name@gmail.com",
+  "passwordHash": "$2b$10$.zunr/a/gGwhNDU2yjSbyOgPFfufUAdAWIBGqdorPIx8MXttWfl52",
+  "createdAt": "2026-05-19T09:50:22.200Z",
+  "updatedAt": "2026-05-19T09:50:22.200Z"
+}
