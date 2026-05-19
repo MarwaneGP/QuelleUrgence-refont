@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --text-scale: 1;
+  /* Contraste et lisibilité : focus visible pour navigation clavier */
+  --focus-ring: 4px solid #dc2626;
+  --focus-ring-offset: 2px;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  font-size: calc(100% * var(--text-scale, 1));
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cohérence pour les lecteurs d'écran : éléments décoratifs masqués à l'annonce */
+[aria-hidden="true"] {
+  @apply pointer-events-none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// Leaflet popup styles
+.hospital-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hospital-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+}
+
+// User location marker styles
+.user-location-marker {
+  z-index: 1000 !important;
+  position: relative;
+}

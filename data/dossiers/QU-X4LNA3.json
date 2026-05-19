@@ -1,0 +1,261 @@
+{
+  "id": "QU-X4LNA3",
+  "accessCode": "QU-X4LNA3",
+  "createdAt": "2026-05-19T07:20:06.183Z",
+  "patient": {
+    "firstName": "guillaume",
+    "lastName": "gonidou",
+    "age": 34,
+    "gender": "homme",
+    "phone": "",
+    "email": "guillaume.gonidou@edu.devinci.fr"
+  },
+  "symptoms": [
+    "Fièvre élevée (> 39°C)",
+    "Trouble de la vision",
+    "Paralysie / faiblesse soudaine"
+  ],
+  "symptomDescription": "malade",
+  "durationHours": 3,
+  "chronicConditions": "",
+  "allergies": "",
+  "triage": {
+    "urgencyLevel": 5,
+    "urgencyLabel": "Critique",
+    "recommendedSpecialties": [
+      "neurologie",
+      "urgences générales"
+    ],
+    "analysis": "Patient de 34 ans présentant : Fièvre élevée (> 39°C), Trouble de la vision, Paralysie / faiblesse soudaine. Les symptômes nécessitent une prise en charge médicale urgente. Orientation recommandée : neurologie, urgences générales.",
+    "shouldGoToEmergency": true,
+    "recommendation": "Appelez immédiatement le 15 (SAMU) ou le 112. Ne conduisez pas vous-même."
+  },
+  "hospitals": [
+    {
+      "name": "Centre hospitalier de Longjumeau",
+      "code": "ChIJs6pDAXTY5UcRS-cIQqi91-E",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "dermatologist",
+        "ent",
+        "urologist",
+        "orthopedist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Centre Hospitalier Intercommunal Lucie et Raymond Aubrac",
+      "code": "ChIJLS10GRQL5kcRVkCZbj9wRio",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "psychologist",
+        "neurosurgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Hôpital privé Jacques Cartier",
+      "code": "ChIJi8nSJ6J35kcRjMO5zu4p2CQ",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "endocrinologist",
+        "dermatologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Hôpital privé de Thiais",
+      "code": "ChIJMy2QjAV05kcRU8Br-qLmv4U",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "psychologist",
+        "neurosurgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Hôpital privé d'Antony",
+      "code": "ChIJN_5Chhh35kcRdOR-TaSv5oU",
+      "distance": 0,
+      "specialties": [
+        "pmr",
+        "rheumatologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "dermatologist",
+        "urologist",
+        "orthopedist",
+        "neurosurgeon",
+        "pediatric_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Centre hospitalier d'Arpajon",
+      "code": "ChIJQ_4jgIXQ5UcRhf8mm5LZSBs",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "dermatologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "psychologist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Hôpital Henri Mondor",
+      "code": "ChIJIVRpEDNz5kcRdz1BFpS7iJk",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "dermatologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "psychologist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Centre hospitalier intercommunal de Créteil",
+      "code": "ChIJ61rlE8YM5kcRF4jBDiOXMMs",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "dermatologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Hôpital Bicêtre",
+      "code": "ChIJ8eaPJHpx5kcR_TuEOvS8pZk",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "rheumatologist",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "dermatologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "psychologist",
+        "neurosurgeon",
+        "pediatric_surgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    },
+    {
+      "name": "Centre Hospitalier Public Fondation Vallée",
+      "code": "ChIJ4bRCNnFx5kcRKsNmRt7mry0",
+      "distance": 0,
+      "specialties": [
+        "internist",
+        "pmr",
+        "cardiologist",
+        "pulmonologist",
+        "nephrologist",
+        "gasteroenterologist",
+        "endocrinologist",
+        "ent",
+        "gynecologist",
+        "urologist",
+        "orthopedist",
+        "psychologist",
+        "neurosurgeon",
+        "orthopedic_surgeon"
+      ],
+      "urgencyScore": 10
+    }
+  ],
+  "qrCodeDataUrl": "data:image/png;base64,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",
+  "qrCodeUrl": "http://localhost:3000/dossier/QU-X4LNA3"
+}
