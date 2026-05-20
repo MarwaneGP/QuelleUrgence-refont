@@ -1,5 +1,5 @@
 'use client'
-
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -34,9 +34,10 @@ export default function Header() {
     <header className="fixed bottom-0 left-0 right-0 md:top-0 md:left-0 md:bottom-0 md:right-auto bg-[var(--bg-frame)] border-t md:border-t-0 md:border-r border-[var(--border-color)] shadow-[var(--shadow-sm)] z-[9999] md:w-64 flex flex-col">
       <div className="hidden md:flex items-center gap-2.5 px-6 py-6 border-b border-[var(--border-color)]">
         <span className="bg-[var(--primary-light)] text-[var(--primary)] w-9 h-9 rounded-xl flex items-center justify-center shadow-sm">
-          <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          </svg> */}
+          <Image src="/images/logo/logo.png" alt="logo" width={80} height={80} />
         </span>
         <div>
           <h1 className="text-base font-extrabold text-[var(--text-main)] tracking-tight">
