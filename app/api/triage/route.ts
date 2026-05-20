@@ -4,6 +4,7 @@ import { analyzeSymptoms } from '@/lib/triage';
 import { saveDossier, generateAccessCode } from '@/lib/dossier';
 import { sendDossierEmail } from '@/lib/mailer';
 import { getHospitalsWithAttendance } from '@/lib/hospitalService';
+import { logAction } from '@/lib/auditLog';
 import { CreateDossierRequest, Dossier } from '@/types/triage';
 
 export async function POST(request: Request) {
@@ -11,6 +12,13 @@ export async function POST(request: Request) {
     const body: CreateDossierRequest = await request.json();
 
     if (!body.patient?.email) {
+      await logAction({
+        action: 'triage.create',
+        resource: 'dossier',
+        statusCode: 400,
+        request,
+        details: { success: false, reason: 'missing_email' },
+      });
       return NextResponse.json({ error: 'Email patient manquant' }, { status: 400 });
     }
 
@@ -41,6 +49,23 @@ export async function POST(request: Request) {
     saveDossier(dossier);
     await sendDossierEmail(dossier);
 
+    await logAction({
+      action: 'triage.create',
+      resource: 'dossier',
+      resourceId: accessCode,
+      userEmail: body.patient.email,
+      statusCode: 201,
+      request,
+      details: {
+        success: true,
+        patientEmail: body.patient.email,
+        symptomsCount: Array.isArray(body.symptoms) ? body.symptoms.length : null,
+        urgencyLevel: triageResult?.urgencyLevel ?? null,
+        urgencyLabel: triageResult?.urgencyLabel ?? null,
+        durationHours: body.durationHours ?? null,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       accessCode,
@@ -49,6 +74,16 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Erreur API triage:', error);
+    await logAction({
+      action: 'triage.create',
+      resource: 'dossier',
+      statusCode: 500,
+      request,
+      details: {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
     return NextResponse.json(
       {
         error: 'Erreur lors de la création du dossier',

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { OperatorPublic } from '@/types/operator';
+import LogoutButton from '@/components/LogoutButton';
 
 interface FormState {
   firstName: string;
@@ -108,9 +109,12 @@ export default function OperateursAdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#1a1a2e] text-white px-6 py-4">
-        <h1 className="text-xl font-bold">Administration — Comptes opérateurs</h1>
-        <p className="text-sm text-gray-400">Gestion des comptes médecins (CRUD)</p>
+      <header className="bg-[#1a1a2e] text-white px-6 py-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold">Administration — Comptes opérateurs</h1>
+          <p className="text-sm text-gray-400">Gestion des comptes médecins (CRUD)</p>
+        </div>
+        <LogoutButton />
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
