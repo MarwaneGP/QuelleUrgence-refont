@@ -72,7 +72,7 @@ export default function NouvelAppelPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Enregistrer un nouvel appel d'urgence</h1>
+        <h1>Enregistrer un nouvel appel d&apos;urgence</h1>
         <p>Remplissez le formulaire avec les informations du patient/victime</p>
       </div>
 

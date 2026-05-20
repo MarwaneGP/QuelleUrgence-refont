@@ -128,7 +128,7 @@ export default function OperateurPage() {
                   <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Comment Ã§a marche ?
+                  Comment ça marche ?
                 </h3>
 
                 <div className="space-y-3.5">
@@ -163,7 +163,7 @@ export default function OperateurPage() {
                     <div>
                       <strong className="block text-[11px] text-[var(--text-main)]">Orientation vers l&apos;hÃ´pital le plus adaptÃ©</strong>
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
-                        Vous recevez une recommandation d&apos;hÃ´pital avec le temps d&apos;attente estimÃ© et un itinÃ©raire.
+                        Vous recevez une recommandation d&apos;hopital avec le temps d&apos;attente estimÃ© et un itinÃ©raire.
                       </p>
                     </div>
                   </div>
