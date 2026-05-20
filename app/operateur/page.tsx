@@ -156,6 +156,8 @@ export default function OperateurPage() {
   async function handleSubmit() {
     setLoading(true);
     setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/triage', {
         method: 'POST',
@@ -599,5 +601,4 @@ function Field({ label, children, required }: { label: string; children: React.R
     </div>
   );
 }
-
 
