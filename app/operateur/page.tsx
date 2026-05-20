@@ -1,24 +1,57 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import OperatorCallForm from "@/components/operateur/OperatorCallForm";
 import { CreateOperatorCallInput } from "@/types/operator";
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 export default function OperateurPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const operatorId = process.env.NEXT_PUBLIC_OPERATOR_ID ?? "";
+  const [operatorId, setOperatorId] = useState<string>("");
+  const [operatorLoading, setOperatorLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadOperatorId() {
+      try {
+        const sb = getSupabaseBrowser();
+        const { data, error: userError } = await sb.auth.getUser();
+        if (userError) throw new Error(userError.message);
+        const userId = data.user?.id;
+        if (!userId) {
+          throw new Error("Session expirée. Connectez-vous à nouveau.");
+        }
+        setOperatorId(userId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Impossible de récupérer l'opérateur connecté");
+      } finally {
+        setOperatorLoading(false);
+      }
+    }
+
+    void loadOperatorId();
+  }, []);
 
   const handleFormSubmit = async (callData: CreateOperatorCallInput) => {
     setError(null);
     setLoading(true);
 
     try {
+      const sb = getSupabaseBrowser();
+      const { data } = await sb.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        throw new Error("Session expirée. Reconnectez-vous.");
+      }
+
       const response = await fetch("/api/operators/calls", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(callData),
       });
 
@@ -68,9 +101,13 @@ export default function OperateurPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left side: The progressive wizard call form */}
             <div className="lg:col-span-7 w-full">
-              {!operatorId ? (
+              {operatorLoading ? (
+                <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-3xl p-6 text-sm font-semibold text-[var(--text-muted)]">
+                  Vérification de la session opérateur...
+                </div>
+              ) : !operatorId ? (
                 <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-3xl p-6 text-sm font-semibold text-[var(--danger)]">
-                  Variable manquante: configurez NEXT_PUBLIC_OPERATOR_ID dans .env
+                  Session opérateur introuvable. Reconnectez-vous.
                 </div>
               ) : (
                 <OperatorCallForm
@@ -201,6 +238,11 @@ export default function OperateurPage() {
     </>
   );
 }
+
+
+
+
+
 
 
 

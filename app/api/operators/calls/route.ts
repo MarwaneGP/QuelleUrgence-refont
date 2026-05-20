@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listOperatorCalls, saveOperatorCall } from '@/lib/operatorCalls';
-import { CreateOperatorCallInput } from '@/types/operator';
-
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { CreateOperatorCallInput } from '@/types/operator';
 
@@ -40,63 +37,84 @@ function parseLimit(raw: string | null): number {
   return Math.min(Math.max(parsed, 1), 200);
 }
 
+async function getAuthenticatedUserId(request: NextRequest): Promise<string | null> {
+  const authHeader = request.headers.get('authorization') ?? '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!token) return null;
+
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb.auth.getUser(token);
+  if (error || !data.user) return null;
+  return data.user.id;
+}
+
 /**
  * POST /api/operators/calls
- * Enregistre un nouvel appel d'urgence depuis un opérateur
+ * Enregistre un nouvel appel d'urgence depuis un opérateur connecté.
  */
 export async function POST(request: NextRequest) {
   try {
+    const operatorId = await getAuthenticatedUserId(request);
+    if (!operatorId) {
+      return NextResponse.json({ error: 'Session invalide ou expirée' }, { status: 401 });
+    }
+
     const body = (await request.json()) as Partial<CreateOperatorCallInput>;
 
-    if (!body.operatorId) {
-      return NextResponse.json({ error: 'operatorId est requis' }, { status: 400 });
-    }
-
     if (!body.caller || !body.location || !body.event || !body.vitalAssessment) {
-      return NextResponse.json(
-        { error: 'Donnees incompletes' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Données incomplètes' }, { status: 400 });
     }
 
-    const callData: CreateOperatorCallInput = body;
-    const savedCall = saveOperatorCall(callData);
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb
+      .from('operator_calls')
+      .insert({
+        operator_id: operatorId,
+        caller: body.caller,
+        location: body.location,
+        event: body.event,
+        vital_assessment: body.vitalAssessment,
+        remarque_generale: body.remarqueGenerale ?? null,
+      })
+      .select(
+        'id, operator_id, caller, location, event, vital_assessment, remarque_generale, status, created_at, updated_at'
+      )
+      .single();
 
-    console.log('Nouvel appel enregistre:', {
-      id: savedCall.id,
-      operatorId: savedCall.operatorId,
-      hospitalLinkUrl: savedCall.hospitalLinkUrl,
-    });
-    console.log(`Lien hopital unique: ${savedCall.hospitalLinkUrl}`);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
     return NextResponse.json(
       {
-        id: savedCall.id,
+        id: data.id,
         success: true,
-        message: 'Appel enregistre avec succes',
-        hospitalLinkUrl: savedCall.hospitalLinkUrl,
-        data: savedCall,
+        message: 'Appel enregistré avec succès',
+        data: toResponse(data as OperatorCallRow),
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Erreur lors de l'enregistrement de l'appel:", error);
-
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
 
+/**
+ * GET /api/operators/calls
+ * Récupère les appels de l'opérateur connecté.
+ */
 export async function GET(request: NextRequest) {
   try {
-    const operatorId = request.nextUrl.searchParams.get('operatorId');
-    const limit = parseLimit(request.nextUrl.searchParams.get('limit'));
-
-    if (!operatorId) {
-      return NextResponse.json({ error: 'operatorId est requis' }, { status: 400 });
+    const authUserId = await getAuthenticatedUserId(request);
+    if (!authUserId) {
+      return NextResponse.json({ error: 'Session invalide ou expirée' }, { status: 401 });
     }
+
+    const requestedOperatorId = request.nextUrl.searchParams.get('operatorId');
+    const operatorId =
+      requestedOperatorId && requestedOperatorId === authUserId ? requestedOperatorId : authUserId;
+    const limit = parseLimit(request.nextUrl.searchParams.get('limit'));
 
     const sb = getSupabaseAdmin();
     const { data, error, count } = await sb
