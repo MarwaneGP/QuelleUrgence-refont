@@ -32,6 +32,7 @@ type OperatorCall = {
 
 export default function HistoryPage() {
   const [calls, setCalls] = useState<OperatorCall[]>([]);
+  const [selectedCall, setSelectedCall] = useState<OperatorCall | null>(null);
   const [loading, setLoading] = useState(true);
   const [phoneQuery, setPhoneQuery] = useState('');
   const [idQuery, setIdQuery] = useState('');
@@ -58,6 +59,18 @@ export default function HistoryPage() {
     initAuth();
   }, []);
 
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setSelectedCall(null);
+      }
+    }
+
+    if (!selectedCall) return;
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedCall]);
+
   async function loadHistory(token: string, phone = phoneQuery, callId = idQuery) {
     setLoading(true);
     setError(null);
@@ -74,7 +87,6 @@ export default function HistoryPage() {
       const data = await res.json();
       let filteredCalls = data.calls ?? [];
 
-      // Apply filters
       if (phone.trim()) {
         filteredCalls = filteredCalls.filter((call: OperatorCall) =>
           call.caller.telephone?.includes(phone.trim())
@@ -106,6 +118,15 @@ export default function HistoryPage() {
     loadHistory(authToken, '', '');
   }
 
+  function prettyPrint(value: unknown): string {
+    if (value == null) return 'Non renseigne';
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  }
+
   return (
     <>
       <Header />
@@ -115,17 +136,15 @@ export default function HistoryPage() {
         tabIndex={-1}
       >
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 space-y-8 animate-fade-in">
-          {/* Header section */}
           <div className="flex flex-col gap-4">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
               Historique des appels
             </h1>
             <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-3">
-              Consultez et recherchez parmi vos appels d&apos;urgence enregistrés.
+              Consultez et recherchez parmi vos appels d'urgence enregistres.
             </p>
           </div>
 
-          {/* Filters section */}
           <section className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-[var(--border-radius-lg)] p-6 shadow-[var(--shadow-sm)]">
             <h2 className="text-base font-extrabold text-[var(--text-main)] mb-5 uppercase tracking-wider">
               Filtres de recherche
@@ -133,7 +152,7 @@ export default function HistoryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]" htmlFor="phone-filter">
-                  Numéro de téléphone
+                  Numero de telephone
                 </label>
                 <input
                   id="phone-filter"
@@ -171,27 +190,28 @@ export default function HistoryPage() {
                 className="px-5 py-2.5 bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--text-main)] font-bold rounded-[var(--border-radius-md)] hover:bg-[var(--border-color)] transition-all text-sm"
                 onClick={resetSearch}
               >
-                Réinitialiser
+                Reinitialiser
               </button>
             </div>
           </section>
 
-          {/* Results list */}
           <section className="space-y-6">
             {loading ? (
               <Loading message="Chargement de vos appels en cours..." />
             ) : error ? (
               <ErrorMessage message={error} />
-            ) : history.length === 0 ? (
+            ) : calls.length === 0 ? (
               <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-[var(--border-radius-lg)] p-8 text-center text-[var(--text-muted)] font-bold shadow-[var(--shadow-sm)]">
-                Aucun appel ne correspond aux critères de recherche.
+                Aucun appel ne correspond aux criteres de recherche.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {calls.map(call => (
-                  <div
+                  <button
+                    type="button"
                     key={call.id}
-                    className="block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--border-radius-md)] p-5 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 transition-all duration-300 group"
+                    onClick={() => setSelectedCall(call)}
+                    className="block text-left w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--border-radius-md)] p-5 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 transition-all duration-300 group"
                   >
                     <div className="flex items-center justify-between gap-3 mb-4">
                       <p className="text-xs font-semibold text-[var(--text-light)]">
@@ -207,7 +227,7 @@ export default function HistoryPage() {
                         {call.caller.prenom} {call.caller.nom}
                       </p>
                       <p className="text-xs font-semibold text-[var(--text-muted)]">
-                        {call.caller.telephone || 'Téléphone non renseigné'}
+                        {call.caller.telephone || 'Telephone non renseigne'}
                       </p>
                       <p className="text-xs font-semibold text-[var(--text-muted)]">
                         {call.location?.adresse_rue_et_num}
@@ -219,18 +239,18 @@ export default function HistoryPage() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[var(--text-muted)]">Statut</span>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-[var(--border-radius-sm)] ${
-                          call.status === 'completed' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {call.status}
-                        </span>
-                      </div>
+                          <span className="text-xs font-bold text-[var(--text-muted)]">Statut</span>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-[var(--border-radius-sm)] ${
+                            call.status === 'completed'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {call.status}
+                          </span>
+                        </div>
                         <p className="text-xs font-semibold text-[var(--text-light)]">
-                        {new Date(call.createdAt).toLocaleDateString('fr-FR')}
-                      </p>
+                          {new Date(call.createdAt).toLocaleDateString('fr-FR')}
+                        </p>
                       </div>
                       {call.remarqueGenerale && (
                         <p className="text-xs text-[var(--text-light)] italic">
@@ -238,13 +258,81 @@ export default function HistoryPage() {
                         </p>
                       )}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </section>
         </div>
       </main>
+
+      {selectedCall && (
+        <div
+          className="fixed inset-0 z-[120] bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setSelectedCall(null)}
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Details de l'appel ${selectedCall.id}`}
+            className="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wider font-bold text-[var(--text-light)]">Details appel</p>
+                <h2 className="text-xl font-extrabold text-[var(--text-main)] mt-1">{selectedCall.id}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCall(null)}
+                className="px-3 py-1.5 text-sm font-bold rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-input)]"
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5 text-sm">
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Patient</p>
+                <p className="mt-2 font-semibold">{selectedCall.caller.prenom} {selectedCall.caller.nom}</p>
+                <p className="text-[var(--text-muted)]">{selectedCall.caller.telephone || 'Telephone non renseigne'}</p>
+              </div>
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Localisation</p>
+                <p className="mt-2 font-semibold">{selectedCall.location?.ville || 'Ville non renseignee'}</p>
+                <p className="text-[var(--text-muted)]">{selectedCall.location?.adresse_rue_et_num || 'Adresse non renseignee'}</p>
+              </div>
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Statut</p>
+                <p className="mt-2 font-semibold">{selectedCall.status}</p>
+                <p className="text-[var(--text-muted)]">Cree le {new Date(selectedCall.createdAt).toLocaleString('fr-FR')}</p>
+                <p className="text-[var(--text-muted)]">Mis a jour le {new Date(selectedCall.updatedAt).toLocaleString('fr-FR')}</p>
+              </div>
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Remarque</p>
+                <p className="mt-2 font-semibold whitespace-pre-wrap">{selectedCall.remarqueGenerale || 'Aucune remarque'}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Evenement</p>
+                <pre className="mt-2 text-xs leading-5 whitespace-pre-wrap break-words text-[var(--text-main)]">
+                  {prettyPrint(selectedCall.event)}
+                </pre>
+              </div>
+              <div className="bg-[var(--bg-input)] rounded-xl p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-light)]">Bilan vital</p>
+                <pre className="mt-2 text-xs leading-5 whitespace-pre-wrap break-words text-[var(--text-main)]">
+                  {prettyPrint(selectedCall.vitalAssessment)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

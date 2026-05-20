@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import Header from '@/components/Header';
 import { getAphpHospitalsWithAttendance } from '@/lib/aphpHospitalsService';
 import {
   geocodeOperatorCallLocation,
@@ -71,10 +70,8 @@ export default async function HospitalLinkPage({
   }
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] pb-16 md:pb-0">
-        <section className="mx-auto max-w-5xl px-4 py-8">
+    <main className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] pb-16 md:-ml-64 md:w-[calc(100%+16rem)] md:pb-0">
+      <section className="mx-auto max-w-5xl px-4 py-8">
           <div className="mb-6">
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--primary)]">
               Orientation hospitaliere
@@ -166,8 +163,7 @@ export default async function HospitalLinkPage({
               ))}
             </div>
           )}
-        </section>
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
