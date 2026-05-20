@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
+import LogoutButton from "@/components/LogoutButton";
 import OperatorCallForm from "@/components/operateur/OperatorCallForm";
 import { CreateOperatorCallInput } from "@/types/operator";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -81,15 +82,18 @@ export default function OperateurPage() {
       >
         <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 space-y-8 animate-fade-in">
           {/* Header section */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
-                Déclarer une urgence
-              </h1>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
+                  Déclarer une urgence
+                </h1>
+              </div>
+              <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-2">
+                Remplissez ce formulaire pour signaler une situation d&apos;urgence. Un opérateur prendra en charge votre demande rapidement.
+              </p>
             </div>
-            <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-2">
-              Remplissez ce formulaire pour signaler une situation d&apos;urgence. Un opérateur prendra en charge votre demande rapidement.
-            </p>
+            <LogoutButton className="text-sm px-3 py-1.5 rounded-lg border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-frame)] transition-colors disabled:opacity-50" />
           </div>
 
           {error && (

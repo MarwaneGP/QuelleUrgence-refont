@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAllDossiers } from '@/lib/dossier';
+import { logAction } from '@/lib/auditLog';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -14,6 +15,18 @@ export async function GET(request: Request) {
       return false;
     }
     return true;
+  });
+
+  await logAction({
+    action: 'dossier.search',
+    resource: 'dossier',
+    statusCode: 200,
+    request,
+    details: {
+      phoneQuery: phone || null,
+      idQuery: accessCode || null,
+      resultCount: dossiers.length,
+    },
   });
 
   return NextResponse.json({ dossiers });

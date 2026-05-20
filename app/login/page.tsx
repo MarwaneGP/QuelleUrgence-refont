@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseBrowser } from '@/lib/supabaseBrowser';
+import { signInWithPassword } from '@/lib/authClient';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -34,18 +35,11 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    try {
-      const sb = getSupabaseBrowser();
-      const { error: signInError } = await sb.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-
-      if (signInError) throw new Error(signInError.message);
+    const result = await signInWithPassword(email.trim().toLowerCase(), password);
+    if (result.success) {
       router.replace(nextPath);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de connexion');
-    } finally {
+    } else {
+      setError(result.error ?? 'Erreur de connexion');
       setLoading(false);
     }
   }
