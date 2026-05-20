@@ -292,7 +292,7 @@ export default function HopitauxPage() {
                     <HospitalList
                       hospitals={filteredHospitals}
                       onSelect={handleHospitalSelect}
-                      activeHospitalCode={activeHospital?.code}
+                      activeHospitalCode={null}
                     />
                   )}
 

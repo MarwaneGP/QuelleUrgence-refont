@@ -32,9 +32,13 @@ export default function NouvelAppelPage() {
         throw new Error(errorData.error || 'Erreur lors de l\'enregistrement');
       }
 
+      const result = await response.json();
       setSuccess(true);
       setTimeout(() => setSuccess(false), 5000);
 
+      if (result.hospitalLinkUrl) {
+        console.log(`Lien hopital unique: ${result.hospitalLinkUrl}`);
+      }
       console.log('Appel enregistré avec succès');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');

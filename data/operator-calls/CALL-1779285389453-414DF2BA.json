@@ -1,0 +1,37 @@
+{
+  "operatorId": "current-operator-id",
+  "caller": {
+    "telephone": "0612345859",
+    "nom": "Nigon",
+    "prenom": "Axelle",
+    "age": 33,
+    "sexe": "femme"
+  },
+  "location": {
+    "ville": "Paris",
+    "adresse_rue_et_num": "13 Rue d'Amsterdam",
+    "adresse_complements": ""
+  },
+  "event": {
+    "type_incident": [
+      "Douleur thoracique"
+    ],
+    "service_concerne_hopital": [
+      "Cardiologie"
+    ],
+    "nombre_personnes": 1,
+    "depuis_quand": "1h",
+    "details_evenement": "douleur subite thoracique serrement depuis plus d'une heure"
+  },
+  "vitalAssessment": {
+    "etat_conscience": "Conscient et lucide",
+    "etat_respiration": "Respiration normale",
+    "etat_saignement": "Aucun saignement",
+    "etat_parole": "Parole normale"
+  },
+  "id": "CALL-1779285389453-414DF2BA",
+  "createdAt": "2026-05-20T13:56:29.453Z",
+  "updatedAt": "2026-05-20T13:56:29.453Z",
+  "hospitalLinkToken": "B7wCOsEdX1oIHqiA78J-To8SIHwacvVB",
+  "hospitalLinkUrl": "http://localhost:3000//hopitaux/lien/B7wCOsEdX1oIHqiA78J-To8SIHwacvVB"
+}

@@ -1,0 +1,35 @@
+{
+  "operatorId": "current-operator-id",
+  "caller": {
+    "telephone": "0781974084",
+    "nom": "Ramiro Naka",
+    "prenom": "j",
+    "age": 0,
+    "sexe": "homme"
+  },
+  "location": {
+    "ville": "Paris",
+    "adresse_rue_et_num": "13 Rue d'Amsterdam",
+    "adresse_complements": ""
+  },
+  "event": {
+    "type_incident": [
+      "Traumatisme / chute"
+    ],
+    "service_concerne_hopital": [],
+    "nombre_personnes": 1,
+    "depuis_quand": "20min",
+    "details_evenement": "test"
+  },
+  "vitalAssessment": {
+    "etat_conscience": "Confus / désorienté",
+    "etat_respiration": "Respiration rapide (> 20/min)",
+    "etat_saignement": "Saignement important",
+    "etat_parole": "Parole difficile"
+  },
+  "id": "CALL-1779285902782-E0EB3BA3",
+  "createdAt": "2026-05-20T14:05:02.782Z",
+  "updatedAt": "2026-05-20T14:05:02.782Z",
+  "hospitalLinkToken": "GKCO9LNpOwggYq__PO65kRckxbiLnBzn",
+  "hospitalLinkUrl": "http://localhost:3000/hopitaux/lien/GKCO9LNpOwggYq__PO65kRckxbiLnBzn"
+}
