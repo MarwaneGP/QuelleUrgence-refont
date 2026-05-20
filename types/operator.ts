@@ -1,8 +1,11 @@
+export type OperatorRole = 'operator' | 'admin';
+
 export interface Operator {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+  role: OperatorRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -14,6 +17,7 @@ export interface CreateOperatorInput {
   lastName: string;
   email: string;
   password: string;
+  role?: OperatorRole;
 }
 
 export interface UpdateOperatorInput {
@@ -21,6 +25,7 @@ export interface UpdateOperatorInput {
   lastName?: string;
   email?: string;
   password?: string;
+  role?: OperatorRole;
 }
 
 // Types pour les appels d'urgence enregistrés par les opérateurs

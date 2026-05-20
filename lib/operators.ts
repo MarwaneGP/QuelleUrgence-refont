@@ -1,11 +1,13 @@
 import { getSupabaseAdmin } from './supabaseAdmin';
 import {
   OperatorPublic,
+  OperatorRole,
   CreateOperatorInput,
   UpdateOperatorInput,
 } from '@/types/operator';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VALID_ROLES: OperatorRole[] = ['operator', 'admin'];
 
 export interface ValidationError {
   field: string;
@@ -17,6 +19,7 @@ interface OperatorRow {
   first_name: string;
   last_name: string;
   email: string;
+  role: OperatorRole | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +30,7 @@ function toPublic(row: OperatorRow): OperatorPublic {
     firstName: row.first_name,
     lastName: row.last_name,
     email: row.email,
+    role: row.role ?? 'operator',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -46,7 +50,7 @@ export async function listOperators(): Promise<OperatorPublic[]> {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('operators_with_email')
-    .select('id, first_name, last_name, email, created_at, updated_at')
+    .select('id, first_name, last_name, email, role, created_at, updated_at')
     .order('last_name', { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(toPublic);
@@ -56,7 +60,7 @@ export async function getOperator(id: string): Promise<OperatorPublic | null> {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('operators_with_email')
-    .select('id, first_name, last_name, email, created_at, updated_at')
+    .select('id, first_name, last_name, email, role, created_at, updated_at')
     .eq('id', id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -71,6 +75,9 @@ function validateCreate(input: CreateOperatorInput): ValidationError[] {
   else if (!EMAIL_REGEX.test(input.email.trim())) errors.push({ field: 'email', message: 'Email invalide' });
   if (!input.password) errors.push({ field: 'password', message: 'Mot de passe requis' });
   else if (input.password.length < 8) errors.push({ field: 'password', message: 'Mot de passe trop court (min 8 caractères)' });
+  if (input.role !== undefined && !VALID_ROLES.includes(input.role)) {
+    errors.push({ field: 'role', message: 'Rôle invalide' });
+  }
   return errors;
 }
 
@@ -102,6 +109,7 @@ export async function createOperator(
     id: userId,
     first_name: input.firstName.trim(),
     last_name: input.lastName.trim(),
+    role: input.role ?? 'operator',
   });
 
   if (insertError) {
@@ -132,6 +140,9 @@ export async function updateOperator(
   if (input.password !== undefined && input.password.length < 8) {
     errors.push({ field: 'password', message: 'Mot de passe trop court (min 8 caractères)' });
   }
+  if (input.role !== undefined && !VALID_ROLES.includes(input.role)) {
+    errors.push({ field: 'role', message: 'Rôle invalide' });
+  }
   if (errors.length) return { errors };
 
   const sb = getSupabaseAdmin();
@@ -153,9 +164,10 @@ export async function updateOperator(
     }
   }
 
-  const opPayload: { first_name?: string; last_name?: string } = {};
+  const opPayload: { first_name?: string; last_name?: string; role?: OperatorRole } = {};
   if (input.firstName !== undefined) opPayload.first_name = input.firstName.trim();
   if (input.lastName !== undefined) opPayload.last_name = input.lastName.trim();
+  if (input.role !== undefined) opPayload.role = input.role;
 
   if (Object.keys(opPayload).length > 0) {
     const { error: opError } = await sb.from('operators').update(opPayload).eq('id', id);

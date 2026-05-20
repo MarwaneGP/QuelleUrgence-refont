@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server';
 import { listOperators, createOperator } from '@/lib/operators';
 import { logAction } from '@/lib/auditLog';
+import { requireAdmin, isNextResponse } from '@/lib/authServer';
 import { CreateOperatorInput } from '@/types/operator';
 
 export async function GET(request: Request) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   try {
     const operators = await listOperators();
     await logAction({
       action: 'operator.list',
       resource: 'operator',
+      userId: auth.id,
+      userEmail: auth.email,
       statusCode: 200,
       request,
       details: { count: operators.length },
@@ -21,6 +27,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   try {
     const body = (await request.json()) as CreateOperatorInput;
     const result = await createOperator(body);
@@ -28,6 +37,8 @@ export async function POST(request: Request) {
       await logAction({
         action: 'operator.create',
         resource: 'operator',
+        userId: auth.id,
+        userEmail: auth.email,
         statusCode: 400,
         request,
         details: { success: false, email: body?.email ?? null, errors: result.errors },
@@ -38,6 +49,8 @@ export async function POST(request: Request) {
       action: 'operator.create',
       resource: 'operator',
       resourceId: result.operator?.id ?? null,
+      userId: auth.id,
+      userEmail: auth.email,
       statusCode: 201,
       request,
       details: {
@@ -45,6 +58,7 @@ export async function POST(request: Request) {
         email: result.operator?.email,
         firstName: result.operator?.firstName,
         lastName: result.operator?.lastName,
+        role: result.operator?.role,
       },
     });
     return NextResponse.json({ operator: result.operator }, { status: 201 });

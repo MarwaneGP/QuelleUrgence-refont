@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import AuthGuard from '@/components/AuthGuard';
+import AdminAuthGuard from '@/components/AdminAuthGuard';
 
 export const metadata: Metadata = {
   title: 'Journal d\'audit',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLogLayout({ children }: { children: React.ReactNode }) {
-  return <AuthGuard>{children}</AuthGuard>;
+  return <AdminAuthGuard>{children}</AdminAuthGuard>;
 }
