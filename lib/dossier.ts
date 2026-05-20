@@ -40,6 +40,22 @@ export function getDossier(accessCode: string): Dossier | null {
   }
 }
 
+export function getAllDossiers(): Dossier[] {
+  ensureDir();
+  return fs.readdirSync(DOSSIERS_DIR)
+    .filter(file => file.toLowerCase().endsWith('.json'))
+    .map(file => {
+      try {
+        const raw = fs.readFileSync(path.join(DOSSIERS_DIR, file), 'utf-8');
+        return JSON.parse(raw) as Dossier;
+      } catch {
+        return null;
+      }
+    })
+    .filter((item): item is Dossier => item !== null)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export function dossierExists(accessCode: string): boolean {
   ensureDir();
   const sanitized = accessCode.toUpperCase().replace(/[^A-Z0-9-]/g, '');
