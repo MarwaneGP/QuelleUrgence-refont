@@ -51,7 +51,7 @@ export default function MultiSelectFilter({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-2 bg-white border-2 border-black rounded-full font-semibold text-black hover:text-white hover:border-primary hover:bg-primary transition-colors focus:outline-none focus:ring-4 focus:ring-red-600 flex items-center justify-between"
+          className="w-full px-4 py-2 bg-white border-2 border-black rounded-full font-semibold text-black hover:text-white hover:border-primary hover:bg-primary transition-colors focus:outline-none focus:ring-4 focus:ring-slate-500 flex items-center justify-between"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
         >
@@ -122,7 +122,7 @@ export default function MultiSelectFilter({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => handleToggle(option.value)}
-                    className="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-primary border-gray-300 rounded accent-primary focus:outline-none focus:ring-4 focus:ring-red-600"
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-primary border-gray-300 rounded accent-primary focus:outline-none focus:ring-4 focus:ring-slate-500"
                   />
                   <span className="text-sm flex-1">{option.label}</span>
                 </label>
@@ -134,3 +134,4 @@ export default function MultiSelectFilter({
     </div>
   );
 }
+
