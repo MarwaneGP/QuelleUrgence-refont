@@ -1,9 +1,5 @@
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import { CreateOperatorCallInput, OperatorCall } from '@/types/operator';
-
-const CALLS_DIR = path.join(process.cwd(), 'data', 'operator-calls');
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 export interface StoredOperatorCall extends OperatorCall {
   id: string;
@@ -13,10 +9,17 @@ export interface StoredOperatorCall extends OperatorCall {
   hospitalLinkUrl: string;
 }
 
-function ensureDir() {
-  if (!fs.existsSync(CALLS_DIR)) {
-    fs.mkdirSync(CALLS_DIR, { recursive: true });
-  }
+interface OperatorCallRow {
+  id: string;
+  operator_id: string;
+  caller: unknown;
+  location: unknown;
+  event: unknown;
+  vital_assessment: unknown;
+  remarque_generale: string | null;
+  status: 'new' | 'in_progress' | 'closed' | null;
+  created_at: string;
+  updated_at: string;
 }
 
 function getBaseUrl(): string {
@@ -24,74 +27,96 @@ function getBaseUrl(): string {
 }
 
 function sanitizeToken(token: string): string {
-  return token.replace(/[^a-zA-Z0-9_-]/g, '');
+  return token.trim().replace(/[^a-zA-Z0-9_-]/g, '');
 }
 
-export function generateHospitalLinkToken(): string {
-  ensureDir();
-
-  for (let i = 0; i < 10; i += 1) {
-    const token = crypto.randomBytes(24).toString('base64url');
-    if (!getOperatorCallByHospitalToken(token)) return token;
-  }
-
-  throw new Error('Impossible de generer un lien hopital unique');
+function buildHospitalLink(token: string): string {
+  return `${getBaseUrl()}/hopitaux/lien/${encodeURIComponent(token)}`;
 }
 
-export function saveOperatorCall(input: CreateOperatorCallInput): StoredOperatorCall {
-  ensureDir();
-
-  const now = new Date().toISOString();
-  const id = `CALL-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-  const hospitalLinkToken = generateHospitalLinkToken();
-  const hospitalLinkUrl = `${getBaseUrl()}/hopitaux/lien/${hospitalLinkToken}`;
-
-  const call: StoredOperatorCall = {
-    ...input,
-    id,
-    createdAt: now,
-    updatedAt: now,
-    hospitalLinkToken,
-    hospitalLinkUrl,
+function toStoredOperatorCall(row: OperatorCallRow): StoredOperatorCall {
+  return {
+    id: row.id,
+    operatorId: row.operator_id,
+    caller: row.caller as StoredOperatorCall['caller'],
+    location: row.location as StoredOperatorCall['location'],
+    event: row.event as StoredOperatorCall['event'],
+    vitalAssessment: row.vital_assessment as StoredOperatorCall['vitalAssessment'],
+    remarqueGenerale: row.remarque_generale ?? undefined,
+    status: row.status ?? 'new',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    hospitalLinkToken: row.id,
+    hospitalLinkUrl: buildHospitalLink(row.id),
   };
-
-  fs.writeFileSync(path.join(CALLS_DIR, `${id}.json`), JSON.stringify(call, null, 2), 'utf-8');
-  return call;
 }
 
-export function getOperatorCallByHospitalToken(token: string): StoredOperatorCall | null {
-  ensureDir();
+export function getHospitalLinkByCallId(callId: string): { hospitalLinkToken: string; hospitalLinkUrl: string } {
+  const token = sanitizeToken(callId);
+  return {
+    hospitalLinkToken: token,
+    hospitalLinkUrl: buildHospitalLink(token),
+  };
+}
+
+export async function saveOperatorCall(input: CreateOperatorCallInput): Promise<StoredOperatorCall> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('operator_calls')
+    .insert({
+      operator_id: input.operatorId,
+      caller: input.caller,
+      location: input.location,
+      event: input.event,
+      vital_assessment: input.vitalAssessment,
+      remarque_generale: input.remarqueGenerale ?? null,
+      status: input.status ?? 'new',
+    })
+    .select(
+      'id, operator_id, caller, location, event, vital_assessment, remarque_generale, status, created_at, updated_at'
+    )
+    .single();
+
+  if (error) throw new Error(error.message);
+  return toStoredOperatorCall(data as OperatorCallRow);
+}
+
+export async function getOperatorCallByHospitalToken(token: string): Promise<StoredOperatorCall | null> {
   const cleanToken = sanitizeToken(token);
   if (!cleanToken) return null;
 
-  const files = fs.readdirSync(CALLS_DIR).filter(file => file.toLowerCase().endsWith('.json'));
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('operator_calls')
+    .select(
+      'id, operator_id, caller, location, event, vital_assessment, remarque_generale, status, created_at, updated_at'
+    )
+    .eq('id', cleanToken)
+    .limit(1)
+    .maybeSingle();
 
-  for (const file of files) {
-    try {
-      const raw = fs.readFileSync(path.join(CALLS_DIR, file), 'utf-8');
-      const call = JSON.parse(raw) as StoredOperatorCall;
-      if (call.hospitalLinkToken === cleanToken) return call;
-    } catch {
+  if (error) {
+    if (error.code === 'PGRST116' || error.message.toLowerCase().includes('0 rows')) {
+      return null;
     }
+    throw new Error(error.message);
   }
 
-  return null;
+  if (!data) return null;
+  return toStoredOperatorCall(data as OperatorCallRow);
 }
 
-export function listOperatorCalls(operatorId: string, limit = 50): StoredOperatorCall[] {
-  ensureDir();
+export async function listOperatorCalls(operatorId: string, limit = 50): Promise<StoredOperatorCall[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('operator_calls')
+    .select(
+      'id, operator_id, caller, location, event, vital_assessment, remarque_generale, status, created_at, updated_at'
+    )
+    .eq('operator_id', operatorId)
+    .order('created_at', { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 200));
 
-  return fs.readdirSync(CALLS_DIR)
-    .filter(file => file.toLowerCase().endsWith('.json'))
-    .map(file => {
-      try {
-        const raw = fs.readFileSync(path.join(CALLS_DIR, file), 'utf-8');
-        return JSON.parse(raw) as StoredOperatorCall;
-      } catch {
-        return null;
-      }
-    })
-    .filter((call): call is StoredOperatorCall => call !== null && call.operatorId === operatorId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => toStoredOperatorCall(row as OperatorCallRow));
 }

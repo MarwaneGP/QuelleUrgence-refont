@@ -51,7 +51,7 @@ export default async function HospitalLinkPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const call = getOperatorCallByHospitalToken(token);
+  const call = await getOperatorCallByHospitalToken(token);
 
   if (!call) {
     notFound();

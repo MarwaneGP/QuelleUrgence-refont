@@ -12,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: 'Code manquant' }, { status: 400 });
   }
 
-  const dossier = getDossier(code);
+  const dossier = await getDossier(code);
 
   if (!dossier) {
     await logAction({

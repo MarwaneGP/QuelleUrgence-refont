@@ -7,7 +7,8 @@ export async function GET(request: Request) {
   const phone = url.searchParams.get('phone')?.trim() ?? '';
   const accessCode = url.searchParams.get('id')?.trim().toUpperCase() ?? '';
 
-  const dossiers = getAllDossiers().filter(dossier => {
+  const allDossiers = await getAllDossiers();
+  const dossiers = allDossiers.filter(dossier => {
     if (phone && !dossier.patient.phone.toLowerCase().includes(phone.toLowerCase())) {
       return false;
     }

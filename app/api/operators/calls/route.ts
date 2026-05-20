@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
-import { saveOperatorCall } from '@/lib/operatorCalls';
+import { getHospitalLinkByCallId } from '@/lib/operatorCalls';
 import { CreateOperatorCallInput } from '@/types/operator';
 
 interface OperatorCallRow {
@@ -86,28 +86,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const localCall = saveOperatorCall({
-      operatorId,
-      caller: body.caller,
-      location: body.location,
-      event: body.event,
-      vitalAssessment: body.vitalAssessment,
-      remarqueGenerale: body.remarqueGenerale,
-      status: body.status,
-    });
+    const link = getHospitalLinkByCallId(data.id);
 
-    console.info('[Lien hopital unique]', localCall.hospitalLinkUrl);
+    console.info('[Lien hopital unique]', link.hospitalLinkUrl);
 
     return NextResponse.json(
       {
         id: data.id,
         success: true,
         message: 'Appel enregistré avec succès',
-        hospitalLinkUrl: localCall.hospitalLinkUrl,
+        hospitalLinkUrl: link.hospitalLinkUrl,
         data: {
           ...toResponse(data as OperatorCallRow),
-          hospitalLinkToken: localCall.hospitalLinkToken,
-          hospitalLinkUrl: localCall.hospitalLinkUrl,
+          hospitalLinkToken: link.hospitalLinkToken,
+          hospitalLinkUrl: link.hospitalLinkUrl,
         },
       },
       { status: 201 }

@@ -46,7 +46,10 @@ export async function POST(request: Request) {
       qrCodeUrl,
     };
 
-    saveDossier(dossier);
+    await saveDossier(dossier, {
+      latitude: body.latitude,
+      longitude: body.longitude,
+    });
     await sendDossierEmail(dossier);
 
     await logAction({
