@@ -136,9 +136,9 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
         className: 'user-location-marker',
         html: `
           <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="18" fill="#340788" stroke="#FFFFFF" stroke-width="3" opacity="0.9"/>
+            <circle cx="20" cy="20" r="18" fill="#2563EB" stroke="#FFFFFF" stroke-width="3" opacity="0.9"/>
             <circle cx="20" cy="20" r="10" fill="#FFFFFF"/>
-            <circle cx="20" cy="20" r="5" fill="#340788"/>
+            <circle cx="20" cy="20" r="5" fill="#2563EB"/>
           </svg>
         `,
         iconSize: [40, 40],
@@ -269,7 +269,7 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
             padding: 12px 14px;
             min-width: 220px;
             max-width: 260px;
-            background-color: #3C0F7D;
+            background-color: #2563EB;
             color: #FFFFFF;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
@@ -606,7 +606,7 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
       />
       <style jsx global>{`
         .marker-cluster {
-          background-color: rgba(52, 7, 136, 0.6);
+          background-color: rgba(37, 99, 235, 0.6);
         }
         .marker-cluster div {
           width: 30px;
@@ -620,7 +620,7 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
           display: flex;
           align-items: center;
           justify-content: center;
-          background-color: rgba(52, 7, 136, 0.8);
+          background-color: rgba(37, 99, 235, 0.8);
         }
       `}</style>
       <div

@@ -10,7 +10,7 @@ const config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: "#340788",
+        primary: "var(--primary)",
       },
     },
   },

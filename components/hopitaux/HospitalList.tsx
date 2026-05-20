@@ -4,25 +4,27 @@ import NotFoundData from "@/components/NotFoundData";
 
 interface HospitalListProps {
   hospitals: AphpHospitalWithAttendance[];
+  onSelect?: (hospital: AphpHospitalWithAttendance) => void;
+  activeHospitalCode?: string | null;
 }
 
-function HospitalList({ hospitals }: HospitalListProps) {
-    if (hospitals.length === 0) {
-        return (
-          <NotFoundData message="Aucun hôpital trouvé à proximité." />
-        );
-    }
-
+export default function HospitalList({ hospitals, onSelect, activeHospitalCode }: HospitalListProps) {
+  if (hospitals.length === 0) {
     return (
-        <div className="space-y-3" role="list" aria-label="Liste des hôpitaux avec services d'urgence, triée par recommandation">
-            {hospitals.map((hospital) => (
-                <HospitalCard
-                  key={hospital.code}
-                  hospital={hospital}
-                />
-            ))}
-        </div>
+      <NotFoundData message="Aucun établissement trouvé." />
     );
-}
+  }
 
-export default HospitalList;
+  return (
+    <div className="space-y-3" role="list" aria-label="Liste des hôpitaux triée par recommandation">
+      {hospitals.map((hospital) => (
+        <HospitalCard
+          key={hospital.code}
+          hospital={hospital}
+          onSelect={onSelect}
+          isActive={activeHospitalCode === hospital.code}
+        />
+      ))}
+    </div>
+  );
+}
