@@ -1,0 +1,41 @@
+{
+  "operatorId": "d52782b4-f74d-46e0-8f36-a8094c4b91e5",
+  "caller": {
+    "telephone": "0909060607",
+    "nom": "Martinez",
+    "prenom": "David",
+    "age": 20,
+    "sexe": "homme"
+  },
+  "location": {
+    "ville": "Paris",
+    "adresse_rue_et_num": "Boulevard de Bercy, 75012, Paris",
+    "adresse_complements": "",
+    "latitude": 48.8387085,
+    "longitude": 2.3787666
+  },
+  "event": {
+    "type_incident": [
+      "Perte de conscience",
+      "Convulsion"
+    ],
+    "service_concerne_hopital": [
+      "Urgences générales",
+      "Cardiologie"
+    ],
+    "nombre_personnes": 1,
+    "depuis_quand": "20min",
+    "details_evenement": "test"
+  },
+  "vitalAssessment": {
+    "etat_conscience": "Confus / désorienté",
+    "etat_respiration": "Respiration lente (< 12/min)",
+    "etat_saignement": "Saignement léger",
+    "etat_parole": "Bégaiement"
+  },
+  "id": "CALL-1779301840193-25336479",
+  "createdAt": "2026-05-20T18:30:40.193Z",
+  "updatedAt": "2026-05-20T18:30:40.193Z",
+  "hospitalLinkToken": "z3ERXlQPpri4jnyoJs7YUZ5XPPAo2gko",
+  "hospitalLinkUrl": "http://localhost:3000/hopitaux/lien/z3ERXlQPpri4jnyoJs7YUZ5XPPAo2gko"
+}
