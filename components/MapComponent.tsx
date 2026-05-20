@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
 import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet'
-import type { ComponentType } from 'react'
 
 interface Hospital {
   code: string
@@ -414,17 +412,4 @@ function MapContent({
   )
 }
 
-interface MapContentProps {
-  fullScreen?: boolean
-}
-
-const MapComponent = dynamic(() => Promise.resolve(MapContent), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[300px] md:h-[400px] lg:h-[500px] rounded-lg border-2 border-gray-300 bg-gray-100 flex items-center justify-center">
-      <p className="text-gray-500">Chargement de la carte...</p>
-    </div>
-  )
-}) as ComponentType<MapContentProps>
-
-export default MapComponent
+export default MapContent

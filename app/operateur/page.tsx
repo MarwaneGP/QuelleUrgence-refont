@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import Header from '@/components/Header';
-import OperatorCallForm from '@/components/operateur/OperatorCallForm';
-import { CreateOperatorCallInput } from '@/types/operator';
+import { useState } from "react";
+import Header from "@/components/Header";
+import OperatorCallForm from "@/components/operateur/OperatorCallForm";
+import { CreateOperatorCallInput } from "@/types/operator";
 
 export default function OperateurPage() {
   const [loading, setLoading] = useState(false);
@@ -15,12 +15,11 @@ export default function OperateurPage() {
     setLoading(true);
 
     try {
-      // ID de l'opérateur connecté simulé
-      const operatorId = 'current-operator-id';
+      const operatorId = "current-operator-id";
 
-      const response = await fetch('/api/operators/calls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/operators/calls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...callData,
           operatorId,
@@ -29,15 +28,15 @@ export default function OperateurPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erreur lors de l\'enregistrement');
+        throw new Error(errorData.error || "Erreur lors de l'enregistrement");
       }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 5000);
 
-      console.log('Appel enregistré avec succès');
+      console.log("Appel enregistré avec succès");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -51,33 +50,150 @@ export default function OperateurPage() {
         className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300 pb-24 md:pb-8"
         tabIndex={-1}
       >
-        <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6 space-y-8 animate-fade-in">
+        <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 space-y-8 animate-fade-in">
           {/* Header section */}
-          <div className="flex flex-col gap-4">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
-              Enregistrer un nouvel appel
-            </h1>
-            <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-3">
-              Remplissez les informations cliniques et de localisation transmises par l'appelant.
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
+                Déclarer une urgence
+              </h1>
+            </div>
+            <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-2">
+              Remplissez ce formulaire pour signaler une situation d&apos;urgence. Un opérateur prendra en charge votre demande rapidement.
             </p>
           </div>
 
           {error && (
-            <div className="p-4 bg-[var(--danger-light)] border-l-4 border-[var(--danger)] text-[var(--danger)] rounded-[var(--border-radius-sm)] text-sm font-semibold">
+            <div className="p-4 bg-[var(--danger-light)] border-l-4 border-[var(--danger)] text-[var(--danger)] rounded-[var(--border-radius-sm)] text-sm font-semibold shadow-sm">
               ✗ {error}
             </div>
           )}
 
-          {/* Form */}
-          <section>
-            <OperatorCallForm
-              operatorId="current-operator-id"
-              onSubmit={handleFormSubmit}
-              loading={loading}
-              error={error}
-              success={success}
-            />
-          </section>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left side: The progressive wizard call form */}
+            <div className="lg:col-span-7 w-full">
+              <OperatorCallForm
+                operatorId="current-operator-id"
+                onSubmit={handleFormSubmit}
+                loading={loading}
+                error={error}
+                success={success}
+              />
+            </div>
+
+            {/* Right side: User-friendly guidance */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* What happens after you submit */}
+              <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] p-6 rounded-3xl shadow-lg space-y-4">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-main)] border-b border-[var(--border-color)] pb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Comment ça marche ?
+                </h3>
+
+                <div className="space-y-3.5">
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-white text-[10px] font-extrabold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] text-[var(--text-main)]">Remplissez le formulaire</strong>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
+                        Décrivez la situation étape par étape : identité, localisation, nature de l&apos;incident et état de la victime.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-white text-[10px] font-extrabold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] text-[var(--text-main)]">Un opérateur analyse votre demande</strong>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
+                        Votre fiche est transmise instantanément à un opérateur de régulation qui évalue la gravité et la priorité.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-white text-[10px] font-extrabold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] text-[var(--text-main)]">Orientation vers l&apos;hôpital le plus adapté</strong>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
+                        Vous recevez une recommandation d&apos;hôpital avec le temps d&apos;attente estimé et un itinéraire.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tips for the user */}
+              <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] p-6 rounded-3xl shadow-lg space-y-4">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-main)] border-b border-[var(--border-color)] pb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  Conseils pour bien remplir
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-500 mt-0.5 flex-shrink-0">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <p className="text-[10px] text-[var(--text-muted)] leading-snug">
+                      <strong className="text-[var(--text-main)]">Soyez précis sur l&apos;adresse</strong> — numéro de rue, code postal, digicode ou étage si applicable.
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-500 mt-0.5 flex-shrink-0">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <p className="text-[10px] text-[var(--text-muted)] leading-snug">
+                      <strong className="text-[var(--text-main)]">Décrivez les symptômes observés</strong> — même les détails qui semblent mineurs peuvent aider au triage.
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-500 mt-0.5 flex-shrink-0">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <p className="text-[10px] text-[var(--text-muted)] leading-snug">
+                      <strong className="text-[var(--text-main)]">Gardez votre téléphone accessible</strong> — un opérateur pourrait vous rappeler pour obtenir plus de détails.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Urgent situation reminder */}
+              <div className="bg-red-50 border border-red-200 p-5 rounded-3xl shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="p-2 rounded-xl bg-white text-red-500 flex items-center justify-center shadow-sm flex-shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-red-700">Urgence vitale immédiate ?</h4>
+                    <p className="text-[10px] text-red-600/80 mt-1 leading-snug">
+                      Si la personne est inconsciente, ne respire plus ou saigne abondamment, appelez immédiatement le <strong>15 (SAMU)</strong> ou le <strong>112</strong>. Ne perdez pas de temps à remplir ce formulaire.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </>

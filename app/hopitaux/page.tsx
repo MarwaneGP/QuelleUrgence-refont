@@ -228,77 +228,89 @@ export default function HopitauxPage() {
             }`}
           >
             {/* Search Input Container */}
-            <div className="p-4 border-b border-[var(--border-color)] space-y-3.5 flex-shrink-0">
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="w-4 h-4 text-[var(--text-light)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  placeholder="Rechercher un symptôme, un hôpital..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-[var(--bg-input)] hover:bg-gray-200 dark:hover:bg-gray-700 focus:bg-[var(--bg-frame)] focus:ring-2 focus:ring-[var(--primary)] text-sm font-semibold rounded-full border-none text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none"
-                />
-              </div>
+            {!activeHospital && (
+              <div className="p-4 border-b border-[var(--border-color)] space-y-3.5 flex-shrink-0">
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-[var(--text-light)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Rechercher un symptôme, un hôpital..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 bg-[var(--bg-input)] hover:bg-gray-200 dark:hover:bg-gray-700 focus:bg-[var(--bg-frame)] focus:ring-2 focus:ring-[var(--primary)] text-sm font-semibold rounded-full border-none text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none"
+                  />
+                </div>
 
-              {/* Horizontal filter chips list */}
-              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none scrollable-x">
-                {specialtyChips.map((chip) => (
-                  <button
-                    key={chip}
-                    onClick={() => setSelectedSpecialty(chip)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all border flex-shrink-0 ${
-                      selectedSpecialty === chip
-                        ? 'bg-[var(--primary)] text-white border-transparent shadow-sm'
-                        : 'bg-[var(--bg-badge-inactive)] text-[var(--text-muted)] border-[var(--border-color)] hover:border-gray-400 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    {chip}
-                  </button>
-                ))}
+                {/* Horizontal filter chips list */}
+                <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none scrollable-x">
+                  {specialtyChips.map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => setSelectedSpecialty(chip)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all border flex-shrink-0 ${
+                        selectedSpecialty === chip
+                          ? 'bg-[var(--primary)] text-white border-transparent shadow-sm'
+                          : 'bg-[var(--bg-badge-inactive)] text-[var(--text-muted)] border-[var(--border-color)] hover:border-gray-400 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* List Results Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-              <div className="mb-2">
-                <h2 className="text-sm font-extrabold text-[var(--text-main)] tracking-tight">
-                  Urgences recommandées
-                </h2>
-                <p className="text-[11px] text-[var(--text-muted)]">
-                  Classées par ordre de prise en charge la plus rapide
-                </p>
-              </div>
-
-              {loading && (
-                <div className="py-20 flex justify-center">
-                  <Loading message="Recherche des hôpitaux AP-HP..." />
-                </div>
-              )}
-
-              {error && <ErrorMessage message={error} />}
-
-              {!loading && !error && (
-                <HospitalList
-                  hospitals={filteredHospitals}
-                  onSelect={handleHospitalSelect}
-                  activeHospitalCode={activeHospital?.code}
+              {activeHospital ? (
+                <HospitalDetail
+                  hospital={activeHospital}
+                  onClose={() => setActiveHospital(null)}
+                  inline
                 />
-              )}
+              ) : (
+                <>
+                  <div className="mb-2">
+                    <h2 className="text-sm font-extrabold text-[var(--text-main)] tracking-tight">
+                      Urgences recommandées
+                    </h2>
+                    <p className="text-[11px] text-[var(--text-muted)]">
+                      Classées par ordre de prise en charge la plus rapide
+                    </p>
+                  </div>
 
-              {/* Real-time disclaimer card */}
-              <div className="p-3.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-badge-inactive)] text-[11px] text-[var(--text-muted)] leading-relaxed space-y-1 mt-4">
-                <strong className="text-[var(--text-main)] flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Données en temps réel via API
-                </strong>
-                Les temps d&apos;attente sont actualisés en continu. En cas d&apos;urgence vitale absolue, composez immédiatement le 15.
-              </div>
+                  {loading && (
+                    <div className="py-20 flex justify-center">
+                      <Loading message="Recherche des hôpitaux AP-HP..." />
+                    </div>
+                  )}
+
+                  {error && <ErrorMessage message={error} />}
+
+                  {!loading && !error && (
+                    <HospitalList
+                      hospitals={filteredHospitals}
+                      onSelect={handleHospitalSelect}
+                      activeHospitalCode={activeHospital?.code}
+                    />
+                  )}
+
+                  {/* Real-time disclaimer card */}
+                  <div className="p-3.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-badge-inactive)] text-[11px] text-[var(--text-muted)] leading-relaxed space-y-1 mt-4">
+                    <strong className="text-[var(--text-main)] flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Données en temps réel via API
+                    </strong>
+                    Les temps d&apos;attente sont actualisés en continu. En cas d&apos;urgence vitale absolue, composez immédiatement le 15.
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -317,13 +329,6 @@ export default function HopitauxPage() {
             />
           </div>
         </div>
-
-        {activeHospital && (
-          <HospitalDetail
-            hospital={activeHospital}
-            onClose={() => setActiveHospital(null)}
-          />
-        )}
       </main>
     </>
   );
