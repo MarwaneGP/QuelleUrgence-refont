@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const operator = getOperator(id);
+  const operator = await getOperator(id);
   if (!operator) {
     return NextResponse.json({ error: 'Opérateur introuvable' }, { status: 404 });
   }
@@ -38,7 +38,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const ok = deleteOperator(id);
+  const ok = await deleteOperator(id);
   if (!ok) {
     return NextResponse.json({ error: 'Opérateur introuvable' }, { status: 404 });
   }

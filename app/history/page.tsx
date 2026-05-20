@@ -4,60 +4,106 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Loading from '@/components/Loading';
 import ErrorMessage from '@/components/ErrorMessage';
-import Link from 'next/link';
+import { getSupabaseBrowser } from '@/lib/supabaseBrowser';
 
-type DossierHistoryItem = {
-  accessCode: string;
+type Caller = {
+  prenom?: string;
+  nom?: string;
+  telephone?: string;
+};
+
+type Location = {
+  ville?: string;
+  adresse_rue_et_num?: string;
+};
+
+type OperatorCall = {
+  id: string;
+  operatorId: string;
+  caller: Caller;
+  location: Location;
+  event: unknown;
+  vitalAssessment: unknown;
+  remarqueGenerale?: string;
+  status: string;
   createdAt: string;
-  patient: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    email: string;
-  };
+  updatedAt: string;
 };
 
 export default function HistoryPage() {
-  const [history, setHistory] = useState<DossierHistoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [calls, setCalls] = useState<OperatorCall[]>([]);
+  const [loading, setLoading] = useState(true);
   const [phoneQuery, setPhoneQuery] = useState('');
   const [idQuery, setIdQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
-    loadHistory();
+    async function initAuth() {
+      try {
+        const sb = getSupabaseBrowser();
+        const { data, error: authError } = await sb.auth.getSession();
+        if (authError || !data.session?.access_token) {
+          setError('Session invalide. Veuillez vous reconnecter.');
+          setLoading(false);
+          return;
+        }
+        setAuthToken(data.session.access_token);
+        await loadHistory(data.session.access_token);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Erreur lors de l\'initialisation');
+        setLoading(false);
+      }
+    }
+    initAuth();
   }, []);
 
-  async function loadHistory(phone = phoneQuery, accessCode = idQuery) {
+  async function loadHistory(token: string, phone = phoneQuery, callId = idQuery) {
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams();
-    if (phone.trim()) params.set('phone', phone.trim());
-    if (accessCode.trim()) params.set('id', accessCode.trim().toUpperCase());
-
     try {
-      const res = await fetch(`/api/dossiers?${params.toString()}`);
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      const res = await fetch('/api/operators/calls', { headers });
       if (!res.ok) {
-        throw new Error('Impossible de charger l’historique');
+        throw new Error('Impossible de charger l\'historique des appels');
       }
       const data = await res.json();
-      setHistory(data.dossiers ?? []);
+      let filteredCalls = data.calls ?? [];
+
+      // Apply filters
+      if (phone.trim()) {
+        filteredCalls = filteredCalls.filter((call: OperatorCall) =>
+          call.caller.telephone?.includes(phone.trim())
+        );
+      }
+      if (callId.trim()) {
+        filteredCalls = filteredCalls.filter((call: OperatorCall) =>
+          call.id.toLowerCase().includes(callId.trim().toLowerCase())
+        );
+      }
+
+      setCalls(filteredCalls);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors du chargement de l’historique');
+      setError(e instanceof Error ? e.message : 'Erreur lors du chargement de l\'historique');
     } finally {
       setLoading(false);
     }
   }
 
   function handleSearch() {
-    loadHistory(phoneQuery, idQuery);
+    if (!authToken) return;
+    loadHistory(authToken, phoneQuery, idQuery);
   }
 
   function resetSearch() {
+    if (!authToken) return;
     setPhoneQuery('');
     setIdQuery('');
-    loadHistory('', '');
+    loadHistory(authToken, '', '');
   }
 
   return (
@@ -72,10 +118,10 @@ export default function HistoryPage() {
           {/* Header section */}
           <div className="flex flex-col gap-4">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
-              Historique des dossiers
+              Historique des appels
             </h1>
             <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-3">
-              Consultez et recherchez parmi les dossiers de triage patient générés.
+              Consultez et recherchez parmi vos appels d&apos;urgence enregistrés.
             </p>
           </div>
 
@@ -101,14 +147,14 @@ export default function HistoryPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]" htmlFor="id-filter">
-                  ID Dossier
+                  ID Appel
                 </label>
                 <input
                   id="id-filter"
                   className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--border-radius-md)] px-4 py-2.5 text-sm text-[var(--text-main)] placeholder-[var(--text-light)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-mono font-bold"
                   value={idQuery}
-                  onChange={e => setIdQuery(e.target.value.toUpperCase())}
-                  placeholder="QU-XXXXXX"
+                  onChange={e => setIdQuery(e.target.value)}
+                  placeholder="CALL-XXXXXX"
                 />
               </div>
             </div>
@@ -133,53 +179,66 @@ export default function HistoryPage() {
           {/* Results list */}
           <section className="space-y-6">
             {loading ? (
-              <Loading message="Recherche des dossiers en cours..." />
+              <Loading message="Chargement de vos appels en cours..." />
             ) : error ? (
               <ErrorMessage message={error} />
             ) : history.length === 0 ? (
               <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-[var(--border-radius-lg)] p-8 text-center text-[var(--text-muted)] font-bold shadow-[var(--shadow-sm)]">
-                Aucun dossier ne correspond aux critères de recherche.
+                Aucun appel ne correspond aux critères de recherche.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {history.map(dossier => (
-                  <Link
-                    key={dossier.accessCode}
-                    href={`/dossier/${encodeURIComponent(dossier.accessCode)}`}
+                {calls.map(call => (
+                  <div
+                    key={call.id}
                     className="block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--border-radius-md)] p-5 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 transition-all duration-300 group"
                   >
                     <div className="flex items-center justify-between gap-3 mb-4">
-                      <p className="font-extrabold text-sm font-mono tracking-widest bg-[var(--primary-light)] text-[var(--primary)] px-2.5 py-1 rounded-[var(--border-radius-sm)] border border-[var(--primary-border)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
-                        {dossier.accessCode}
-                      </p>
                       <p className="text-xs font-semibold text-[var(--text-light)]">
-                        {new Date(dossier.createdAt).toLocaleDateString('fr-FR')}
+                        Dossier:
+                      </p>
+                      <p className="font-extrabold text-xs font-mono tracking-widest bg-[var(--primary-light)] text-[var(--primary)] px-2.5 py-1 rounded-[var(--border-radius-sm)] border border-[var(--primary-border)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
+                        {call.id ? `${call.id}` : `###`}
                       </p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="font-bold text-base text-[var(--text-main)]">
-                        {dossier.patient.firstName} {dossier.patient.lastName}
+                        {call.caller.prenom} {call.caller.nom}
                       </p>
                       <p className="text-xs font-semibold text-[var(--text-muted)]">
-                        {dossier.patient.phone || 'Téléphone non renseigné'}
+                        {call.caller.telephone || 'Téléphone non renseigné'}
                       </p>
-                      {dossier.patient.email && (
-                        <p className="text-xs font-medium text-[var(--text-light)] truncate">
-                          {dossier.patient.email}
-                        </p>
-                      )}
+                      <p className="text-xs font-semibold text-[var(--text-muted)]">
+                        {call.location?.adresse_rue_et_num}
+                      </p>
                     </div>
 
                     <div className="border-t border-[var(--border-color)] my-4" />
 
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-[var(--primary)]">
-                      <span>Voir l'analyse de triage</span>
-                      <svg className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-                      </svg>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[var(--text-muted)]">Statut</span>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-[var(--border-radius-sm)] ${
+                          call.status === 'completed' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {call.status}
+                        </span>
+                      </div>
+                        <p className="text-xs font-semibold text-[var(--text-light)]">
+                        {new Date(call.createdAt).toLocaleDateString('fr-FR')}
+                      </p>
+                      </div>
+                      {call.remarqueGenerale && (
+                        <p className="text-xs text-[var(--text-light)] italic">
+                          Remarque: {call.remarqueGenerale}
+                        </p>
+                      )}
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}

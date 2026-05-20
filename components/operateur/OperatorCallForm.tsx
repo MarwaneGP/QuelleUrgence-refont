@@ -1,7 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { CreateOperatorCallInput, OperatorCall } from "@/types/operator";
+
+interface AddressOption {
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+}
 
 export interface OperatorCallFormProps {
   onSubmit: (data: CreateOperatorCallInput) => Promise<void>;
@@ -86,6 +95,8 @@ interface FormData {
   ville: string;
   adresse_rue_et_num: string;
   adresse_complements: string;
+  latitude?: number;
+  longitude?: number;
   type_incident: string[];
   service_concerne_hopital: string[];
   nombre_personnes: string;
@@ -107,6 +118,8 @@ const INITIAL_FORM: FormData = {
   ville: "",
   adresse_rue_et_num: "",
   adresse_complements: "",
+  latitude: undefined,
+  longitude: undefined,
   type_incident: [],
   service_concerne_hopital: [],
   nombre_personnes: "1",
@@ -139,6 +152,8 @@ export default function OperatorCallForm({
           ville: initialData.location?.ville || "",
           adresse_rue_et_num: initialData.location?.adresse_rue_et_num || "",
           adresse_complements: initialData.location?.adresse_complements || "",
+          latitude: initialData.location?.latitude,
+          longitude: initialData.location?.longitude,
           type_incident: initialData.event?.type_incident || [],
           service_concerne_hopital: initialData.event?.service_concerne_hopital || [],
           nombre_personnes: String(initialData.event?.nombre_personnes || "1"),
@@ -157,8 +172,119 @@ export default function OperatorCallForm({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [internalSuccess, setInternalSuccess] = useState(false);
 
+  // Address search states
+  const [villeSuggestions, setVilleSuggestions] = useState<AddressOption[]>([]);
+  const [adresseSuggestions, setAdresseSuggestions] = useState<AddressOption[]>([]);
+  const [showVilleDropdown, setShowVilleDropdown] = useState(false);
+  const [showAdresseDropdown, setShowAdresseDropdown] = useState(false);
+  const [villeLoading, setVilleLoading] = useState(false);
+  const [adresseLoading, setAdresseLoading] = useState(false);
+  const villeDropdownRef = useRef<HTMLDivElement>(null);
+  const adresseDropdownRef = useRef<HTMLDivElement>(null);
+
   const displayError = externalError || validationError;
   const displaySuccess = externalSuccess || internalSuccess;
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (villeDropdownRef.current && !villeDropdownRef.current.contains(event.target as Node)) {
+        setShowVilleDropdown(false);
+      }
+      if (adresseDropdownRef.current && !adresseDropdownRef.current.contains(event.target as Node)) {
+        setShowAdresseDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounced address search function
+  const searchAddress = useCallback(async (query: string, isVille: boolean = false) => {
+    if (!query || query.length < 2) {
+      if (isVille) {
+        setVilleSuggestions([]);
+      } else {
+        setAdresseSuggestions([]);
+      }
+      return;
+    }
+
+    try {
+      if (isVille) {
+        setVilleLoading(true);
+      } else {
+        setAdresseLoading(true);
+      }
+
+      const response = await fetch(`/api/search-address?query=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error("Failed to fetch suggestions");
+
+      const data = await response.json();
+      if (isVille) {
+        setVilleSuggestions(data.predictions || []);
+      } else {
+        setAdresseSuggestions(data.predictions || []);
+      }
+    } catch (error) {
+      console.error("Error searching addresses:", error);
+      if (isVille) {
+        setVilleSuggestions([]);
+      } else {
+        setAdresseSuggestions([]);
+      }
+    } finally {
+      if (isVille) {
+        setVilleLoading(false);
+      } else {
+        setAdresseLoading(false);
+      }
+    }
+  }, []);
+
+  // Debounce timer for search
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleVilleSearch = useCallback((value: string) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      searchAddress(value, true);
+    }, 300);
+  }, [searchAddress]);
+
+  const handleAdresseSearch = useCallback((value: string) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      searchAddress(value, false);
+    }, 300);
+  }, [searchAddress]);
+
+  const handleVilleSelect = (option: AddressOption) => {
+    setForm((prev) => ({ 
+      ...prev, 
+      ville: option.mainText,
+      latitude: option.latitude,
+      longitude: option.longitude,
+    }));
+    setShowVilleDropdown(false);
+    setVilleSuggestions([]);
+  };
+
+  const handleAdresseSelect = (option: AddressOption) => {
+    setForm((prev) => ({ 
+      ...prev, 
+      adresse_rue_et_num: option.description,
+      latitude: option.latitude,
+      longitude: option.longitude,
+    }));
+    setShowAdresseDropdown(false);
+    setAdresseSuggestions([]);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -166,6 +292,15 @@ export default function OperatorCallForm({
     const { name, value } = e.currentTarget;
     setForm((prev) => ({ ...prev, [name]: value }));
     setValidationError(null);
+
+    // Trigger address search for location fields
+    if (name === "ville") {
+      setShowVilleDropdown(true);
+      handleVilleSearch(value);
+    } else if (name === "adresse_rue_et_num") {
+      setShowAdresseDropdown(true);
+      handleAdresseSearch(value);
+    }
   };
 
   const handleSelectSexe = (sexe: "homme" | "femme" | "autre") => {
@@ -254,6 +389,8 @@ export default function OperatorCallForm({
           ville: form.ville,
           adresse_rue_et_num: form.adresse_rue_et_num,
           adresse_complements: form.adresse_complements,
+          latitude: form.latitude,
+          longitude: form.longitude,
         },
         event: {
           type_incident: form.type_incident,
@@ -458,36 +595,89 @@ export default function OperatorCallForm({
         {/* STEP 2: Location */}
         {currentStep === 2 && (
           <div className="space-y-4 animate-fade-in">
+            {/* Ville Autocomplete */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-light)]">
                 Ville *
               </label>
-              <input
-                type="text"
-                name="ville"
-                required
-                value={form.ville}
-                onChange={handleInputChange}
-                placeholder="Ex: Paris"
-                className="w-full bg-[var(--bg-input)] hover:bg-gray-200 focus:bg-white border-none focus:ring-2 focus:ring-[var(--primary)] px-4 py-3.5 rounded-2xl text-xs font-semibold text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none shadow-sm"
-              />
+              <div className="relative" ref={villeDropdownRef}>
+                <input
+                  type="text"
+                  name="ville"
+                  required
+                  value={form.ville}
+                  onChange={handleInputChange}
+                  onFocus={() => form.ville && setShowVilleDropdown(true)}
+                  placeholder="Ex: Paris"
+                  className="w-full bg-[var(--bg-input)] hover:bg-gray-200 focus:bg-white border-none focus:ring-2 focus:ring-[var(--primary)] px-4 py-3.5 rounded-2xl text-xs font-semibold text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none shadow-sm"
+                />
+                {villeLoading && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
+                  </div>
+                )}
+                {showVilleDropdown && villeSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-[var(--primary)] rounded-2xl shadow-lg max-h-64 overflow-y-auto">
+                    {villeSuggestions.map((option) => (
+                      <button
+                        key={option.placeId}
+                        type="button"
+                        onClick={() => handleVilleSelect(option)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-[var(--primary)] hover:text-white transition-colors flex flex-col gap-0.5"
+                      >
+                        <div className="text-xs font-semibold">{option.mainText}</div>
+                        {option.secondaryText && (
+                          <div className="text-[10px] opacity-75">{option.secondaryText}</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Adresse Autocomplete */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-light)]">
-                Rue et Numéro *
+                Adresse *
               </label>
-              <input
-                type="text"
-                name="adresse_rue_et_num"
-                required
-                value={form.adresse_rue_et_num}
-                onChange={handleInputChange}
-                placeholder="Ex: 12 Rue de Rivoli"
-                className="w-full bg-[var(--bg-input)] hover:bg-gray-200 focus:bg-white border-none focus:ring-2 focus:ring-[var(--primary)] px-4 py-3.5 rounded-2xl text-xs font-semibold text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none shadow-sm"
-              />
+              <div className="relative" ref={adresseDropdownRef}>
+                <input
+                  type="text"
+                  name="adresse_rue_et_num"
+                  required
+                  value={form.adresse_rue_et_num}
+                  onChange={handleInputChange}
+                  onFocus={() => form.adresse_rue_et_num && setShowAdresseDropdown(true)}
+                  placeholder="Ex: 12 Rue de Rivoli"
+                  className="w-full bg-[var(--bg-input)] hover:bg-gray-200 focus:bg-white border-none focus:ring-2 focus:ring-[var(--primary)] px-4 py-3.5 rounded-2xl text-xs font-semibold text-[var(--text-main)] placeholder-[var(--text-light)] transition-all outline-none shadow-sm"
+                />
+                {adresseLoading && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
+                  </div>
+                )}
+                {showAdresseDropdown && adresseSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-[var(--primary)] rounded-2xl shadow-lg max-h-64 overflow-y-auto">
+                    {adresseSuggestions.map((option) => (
+                      <button
+                        key={option.placeId}
+                        type="button"
+                        onClick={() => handleAdresseSelect(option)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-[var(--primary)] hover:text-white transition-colors flex flex-col gap-0.5"
+                      >
+                        <div className="text-xs font-semibold">{option.mainText}</div>
+                        {option.secondaryText && (
+                          <div className="text-[10px] opacity-75">{option.secondaryText}</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Compléments d'adresse */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-light)]">
                 Compléments d&apos;adresse

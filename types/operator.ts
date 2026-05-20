@@ -36,6 +36,8 @@ export interface EmergencyLocation {
   ville: string;
   adresse_rue_et_num: string;
   adresse_complements?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface EventDetails {
@@ -58,6 +60,7 @@ export interface OperatorCall {
   operatorId: string;
   createdAt?: string;
   updatedAt?: string;
+  status?: 'new' | 'in_progress' | 'closed';
   
   // Sections du formulaire
   caller: CallerInfo;

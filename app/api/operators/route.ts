@@ -4,7 +4,8 @@ import { CreateOperatorInput } from '@/types/operator';
 
 export async function GET() {
   try {
-    return NextResponse.json({ operators: listOperators() });
+    const operators = await listOperators();
+    return NextResponse.json({ operators });
   } catch (error) {
     console.error('Erreur GET /api/operators:', error);
     return NextResponse.json({ error: 'Erreur lors de la récupération des opérateurs' }, { status: 500 });
