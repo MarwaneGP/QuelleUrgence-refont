@@ -2,6 +2,7 @@ export type AuditAction =
   | 'auth.login'
   | 'auth.login_failed'
   | 'auth.logout'
+  | 'auth.signup'
   | 'operator.create'
   | 'operator.update'
   | 'operator.delete'

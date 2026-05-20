@@ -28,6 +28,7 @@ const ACTION_PRESETS = [
   { value: 'auth.login', label: 'Connexion' },
   { value: 'auth.login_failed', label: 'Connexion échouée' },
   { value: 'auth.logout', label: 'Déconnexion' },
+  { value: 'auth.signup', label: 'Inscription' },
   { value: 'operator.create', label: 'Création opérateur' },
   { value: 'operator.update', label: 'Modification opérateur' },
   { value: 'operator.delete', label: 'Suppression opérateur' },
