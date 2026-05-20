@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { listAuditLogs } from '@/lib/auditLog';
+import { requireAdmin, isNextResponse } from '@/lib/authServer';
 
 export async function GET(request: Request) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get('action')?.trim() || undefined;

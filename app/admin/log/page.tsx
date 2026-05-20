@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { AuditLog, AuditLogListResult } from '@/types/auditLog';
 import LogoutButton from '@/components/LogoutButton';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 interface Filters {
   action: string;
@@ -95,7 +96,7 @@ export default function AdminLogPage() {
       if (!controller.signal.aborted) setLoading(true);
     });
 
-    fetch(`/api/admin/logs?${params.toString()}`, { signal: controller.signal })
+    fetchWithAuth(`/api/admin/logs?${params.toString()}`, { signal: controller.signal })
       .then(async res => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));

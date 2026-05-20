@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getOperator, updateOperator, deleteOperator } from '@/lib/operators';
 import { logAction } from '@/lib/auditLog';
+import { requireAdmin, isNextResponse } from '@/lib/authServer';
 import { UpdateOperatorInput } from '@/types/operator';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   const { id } = await params;
   const operator = await getOperator(id);
   if (!operator) {
@@ -19,6 +23,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   try {
     const { id } = await params;
     const before = await getOperator(id);
@@ -31,6 +38,8 @@ export async function PUT(
         action: 'operator.update',
         resource: 'operator',
         resourceId: id,
+        userId: auth.id,
+        userEmail: auth.email,
         statusCode: status,
         request,
         details: { success: false, errors: result.errors, changed: Object.keys(body ?? {}) },
@@ -42,6 +51,8 @@ export async function PUT(
       action: 'operator.update',
       resource: 'operator',
       resourceId: id,
+      userId: auth.id,
+      userEmail: auth.email,
       statusCode: 200,
       request,
       details: {
@@ -49,13 +60,19 @@ export async function PUT(
         changed: Object.keys(body ?? {}).filter(k => k !== 'password'),
         passwordChanged: Boolean(body?.password),
         before: before
-          ? { email: before.email, firstName: before.firstName, lastName: before.lastName }
+          ? {
+              email: before.email,
+              firstName: before.firstName,
+              lastName: before.lastName,
+              role: before.role,
+            }
           : null,
         after: result.operator
           ? {
               email: result.operator.email,
               firstName: result.operator.firstName,
               lastName: result.operator.lastName,
+              role: result.operator.role,
             }
           : null,
       },
@@ -71,7 +88,19 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
   const { id } = await params;
+
+  // Empêche un admin de se supprimer lui-même.
+  if (id === auth.id) {
+    return NextResponse.json(
+      { error: 'Vous ne pouvez pas supprimer votre propre compte.' },
+      { status: 400 }
+    );
+  }
+
   const before = await getOperator(id);
   const ok = await deleteOperator(id);
 
@@ -80,6 +109,8 @@ export async function DELETE(
       action: 'operator.delete',
       resource: 'operator',
       resourceId: id,
+      userId: auth.id,
+      userEmail: auth.email,
       statusCode: 404,
       request,
       details: { success: false },
@@ -91,12 +122,19 @@ export async function DELETE(
     action: 'operator.delete',
     resource: 'operator',
     resourceId: id,
+    userId: auth.id,
+    userEmail: auth.email,
     statusCode: 200,
     request,
     details: {
       success: true,
       deleted: before
-        ? { email: before.email, firstName: before.firstName, lastName: before.lastName }
+        ? {
+            email: before.email,
+            firstName: before.firstName,
+            lastName: before.lastName,
+            role: before.role,
+          }
         : null,
     },
   });

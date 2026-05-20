@@ -1,17 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { OperatorPublic } from '@/types/operator';
+import { OperatorPublic, OperatorRole } from '@/types/operator';
 import LogoutButton from '@/components/LogoutButton';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 interface FormState {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
+  role: OperatorRole;
 }
 
-const EMPTY_FORM: FormState = { firstName: '', lastName: '', email: '', password: '' };
+const EMPTY_FORM: FormState = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  role: 'operator',
+};
 
 export default function OperateursAdminPage() {
   const [operators, setOperators] = useState<OperatorPublic[]>([]);
@@ -29,11 +37,12 @@ export default function OperateursAdminPage() {
   async function loadOperators() {
     setLoading(true);
     try {
-      const res = await fetch('/api/operators');
+      const res = await fetchWithAuth('/api/operators');
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erreur de chargement');
       setOperators(data.operators ?? []);
-    } catch {
-      setError('Impossible de charger la liste des opérateurs');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de charger la liste des opérateurs');
     } finally {
       setLoading(false);
     }
@@ -41,7 +50,13 @@ export default function OperateursAdminPage() {
 
   function startEdit(op: OperatorPublic) {
     setEditingId(op.id);
-    setForm({ firstName: op.firstName, lastName: op.lastName, email: op.email, password: '' });
+    setForm({
+      firstName: op.firstName,
+      lastName: op.lastName,
+      email: op.email,
+      password: '',
+      role: op.role,
+    });
     setError(null);
     setSuccess(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -66,10 +81,11 @@ export default function OperateursAdminPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
+        role: form.role,
       };
       if (form.password) payload.password = form.password;
 
-      const res = await fetch(url, {
+      const res = await fetchWithAuth(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -92,7 +108,7 @@ export default function OperateursAdminPage() {
   async function handleDelete(op: OperatorPublic) {
     if (!confirm(`Supprimer l'opérateur ${op.firstName} ${op.lastName} ?`)) return;
     try {
-      const res = await fetch(`/api/operators/${op.id}`, { method: 'DELETE' });
+      const res = await fetchWithAuth(`/api/operators/${op.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? 'Erreur');
@@ -179,6 +195,17 @@ export default function OperateursAdminPage() {
               />
             </Field>
 
+            <Field label="Rôle" required>
+              <select
+                className="input"
+                value={form.role}
+                onChange={e => setForm(f => ({ ...f, role: e.target.value as OperatorRole }))}
+              >
+                <option value="operator">Opérateur</option>
+                <option value="admin">Administrateur</option>
+              </select>
+            </Field>
+
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 {error}
@@ -210,8 +237,15 @@ export default function OperateursAdminPage() {
               {operators.map(op => (
                 <li key={op.id} className="py-3 flex items-center justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 truncate">
-                      {op.lastName.toUpperCase()} {op.firstName}
+                    <p className="font-medium text-gray-900 truncate flex items-center gap-2">
+                      <span className="truncate">
+                        {op.lastName.toUpperCase()} {op.firstName}
+                      </span>
+                      {op.role === 'admin' && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700">
+                          Admin
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm text-gray-500 truncate">{op.email}</p>
                   </div>
