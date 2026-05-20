@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getSupabaseBrowser } from '@/lib/supabaseBrowser';
+import { signInWithPassword } from '@/lib/authClient';
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState('');
@@ -32,7 +32,7 @@ export default function SignupPage() {
         throw new Error('Les mots de passe ne correspondent pas');
       }
 
-      const createRes = await fetch('/api/operators', {
+      const createRes = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -52,12 +52,8 @@ export default function SignupPage() {
         throw new Error(msg);
       }
 
-      const sb = getSupabaseBrowser();
-      const { error: signInError } = await sb.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      if (signInError) throw new Error(signInError.message);
+      const signIn = await signInWithPassword(email.trim().toLowerCase(), password);
+      if (!signIn.success) throw new Error(signIn.error ?? 'Erreur de connexion');
 
       setSuccess('Compte créé. Redirection...');
       router.replace(nextPath);
