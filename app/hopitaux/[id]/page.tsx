@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,7 +24,6 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
   const [accessibilityOptions, setAccessibilityOptions] = useState<AccessibilityOptions | null>(null);
   const [placeAddress, setPlaceAddress] = useState<string | null>(null);
   const [specificationsLoading, setspecificationsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     async function resolveParams() {
@@ -158,7 +156,7 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
             <Link 
               aria-label="Retour à la liste des hôpitaux"
               href="/hopitaux" 
-              className="mt-4 inline-flex items-center gap-2 text-primary font-bold hover:underline focus:outline-none focus:ring-4 focus:ring-red-600 rounded px-2 py-1"
+              className="mt-4 inline-flex items-center gap-2 text-primary font-bold hover:underline focus:outline-none focus:ring-4 focus:ring-slate-500 rounded px-2 py-1"
             >
               ← Retour à la liste
             </Link>
@@ -211,7 +209,7 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
           </div>
           <Link 
             href="/hopitaux" 
-            className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 text-white font-bold hover:underline focus:ring-4 focus:ring-red-600 outline-none px-3 py-2 bg-primary rounded-full transition-all hover:scale-105"
+            className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 text-white font-bold hover:underline focus:ring-4 focus:ring-slate-500 outline-none px-3 py-2 bg-primary rounded-full transition-all hover:scale-105"
             aria-label="Retour à la liste des hôpitaux"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -243,7 +241,7 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
             {hospital.fields.phone && (
               <Link 
                 href={`tel:${hospital.fields.phone}`} 
-                className="flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-red-600 rounded px-2 py-1 -ml-2 hover:bg-black/10 transition-colors"
+                className="flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-slate-500 rounded px-2 py-1 -ml-2 hover:bg-black/10 transition-colors"
                 aria-label={`Appeler ${hospital.fields.name} au ${hospital.fields.phone}`}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -254,17 +252,6 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
               <p className="text-white/70 text-sm italic">Aucun numéro de téléphone disponible</p>
             )}
           </div>
-          
-          <button 
-            className="bg-primary text-white px-4 py-2 rounded-full font-bold w-fit focus:outline-none focus:ring-4 focus:ring-red-600" 
-            type="button"
-            aria-label="Accéder à l'emplacement de l'hôpital sur la carte interactive"
-            onClick={() => {
-              router.push(`/map?lat=${hospital.fields.lat}&lon=${hospital.fields.lon}`);
-            }}
-          >
-            Accéder à la carte
-          </button>
         </section>
 
         <section className='py-6 px-4 flex flex-col gap-4 items-center' aria-labelledby="affluence-heading">
@@ -283,7 +270,7 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
                   <button
                     key={service.code}
                     onClick={() => setSelectedCode(service.code)}
-                    className={`px-6 py-4 rounded-lg font-bold text-lg transition-all focus:outline-none focus:ring-4 focus:ring-red-600 ${
+                    className={`px-6 py-4 rounded-lg font-bold text-lg transition-all focus:outline-none focus:ring-4 focus:ring-slate-500 ${
                       selectedCode === service.code
                         ? 'bg-primary text-white shadow-lg scale-105'
                         : 'bg-white text-primary border-primary border-2 hover:border-primary hover:bg-primary hover:text-white'
@@ -466,4 +453,6 @@ export default function HospitalDetailPage({ params }: { params: Promise<{ id: s
     </>
   );
 }
+
+
 

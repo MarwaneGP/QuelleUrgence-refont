@@ -42,7 +42,7 @@ export default function AccessibilityBar() {
         type="button"
         onClick={decrease}
         disabled={scale <= MIN}
-        className="min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg border-2 border-primary bg-white text-primary font-bold hover:bg-primary hover:text-white focus:outline-none focus:ring-4 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg border-2 border-primary bg-white text-primary font-bold hover:bg-primary hover:text-white focus:outline-none focus:ring-4 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Réduire la taille du texte"
       >
         A−
@@ -54,7 +54,7 @@ export default function AccessibilityBar() {
         type="button"
         onClick={increase}
         disabled={scale >= MAX}
-        className="min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg border-2 border-primary bg-white text-primary font-bold hover:bg-primary hover:text-white focus:outline-none focus:ring-4 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg border-2 border-primary bg-white text-primary font-bold hover:bg-primary hover:text-white focus:outline-none focus:ring-4 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Agrandir la taille du texte"
       >
         A+
@@ -62,3 +62,4 @@ export default function AccessibilityBar() {
     </div>
   );
 }
+
