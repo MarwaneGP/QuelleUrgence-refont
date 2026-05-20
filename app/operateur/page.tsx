@@ -48,7 +48,7 @@ export default function OperateurPage() {
       <Header />
       <main
         id="main-content"
-        className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300 pb-24 md:pb-8 md:pl-64"
+        className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300 pb-24 md:pb-8"
         tabIndex={-1}
       >
         <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6 space-y-8 animate-fade-in">

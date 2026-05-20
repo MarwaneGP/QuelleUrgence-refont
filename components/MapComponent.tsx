@@ -6,63 +6,13 @@ import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet'
 import type { ComponentType } from 'react'
 
 interface Hospital {
-  recordid: string
-  fields: {
-    name: string
-    phone?: string
-    dist?: string
-    meta_geo_point?: [number, number] | number[]
-    geometry?: {
-      coordinates?: [number, number] | number[]
-    }
-    lat?: number
-    lon?: number
-  } & Record<string, unknown>
-}
-
-async function getHospitals(latitude: number, longitude: number): Promise<Hospital[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_HOSPITALS_API_URL
-    const radius = process.env.NEXT_PUBLIC_SEARCH_RADIUS
-    const apiUrl = `${baseUrl}&geofilter.distance=${latitude},${longitude},${radius}`
-    
-    const res = await fetch(apiUrl, { cache: 'no-store' })
-
-    if (!res.ok) {
-      console.error(`Failed to fetch hospitals: ${res.status} ${res.statusText}`)
-      return []
-    }
-
-    const data = await res.json()
-    return data.records as Hospital[]
-  } catch (error) {
-    console.error('Error fetching hospitals:', error)
-    return []
-  }
-}
-
-const extractCoordinates = (hospital: Hospital): [number, number] | null => {
-  const fields = hospital.fields
-  
-  if (fields.meta_geo_point && Array.isArray(fields.meta_geo_point)) {
-    const [lat, lon] = fields.meta_geo_point
-    if (typeof lat === 'number' && typeof lon === 'number') {
-      return [lat, lon]
-    }
-  }
-  
-  if (fields.geometry?.coordinates && Array.isArray(fields.geometry.coordinates)) {
-    const [lon, lat] = fields.geometry.coordinates
-    if (typeof lat === 'number' && typeof lon === 'number') {
-      return [lat, lon]
-    }
-  }
-  
-  if (fields.lat && fields.lon) {
-    return [fields.lat, fields.lon]
-  }
-  
-  return null
+  code: string
+  name: string
+  latitude: number | null
+  longitude: number | null
+  phone: string | null
+  address: string | null
+  attendance?: any
 }
 
 interface MapContentProps {
@@ -70,22 +20,29 @@ interface MapContentProps {
   initialCenter?: [number, number]
   initialZoom?: number
   focusRecordId?: string
+  hospitals?: Hospital[]
+  onSelectHospital?: (hospital: Hospital) => void
 }
 
 const PARIS_COORDS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 13
 const PARIS_FALLBACK_ZOOM = 12
 
-function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecordId }: MapContentProps) {
+function MapContent({
+  fullScreen = false,
+  initialCenter,
+  initialZoom,
+  focusRecordId,
+  hospitals = [],
+  onSelectHospital
+}: MapContentProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<LeafletMap | null>(null)
   const markersRef = useRef<LeafletMarker[]>([])
   const userMarkerRef = useRef<LeafletMarker | null>(null)
   const userPositionRef = useRef<[number, number] | null>(null)
-  const hospitalsDataRef = useRef<Array<{ hospital: Hospital; coords: [number, number] }>>([])
+  const markerClusterGroupRef = useRef<any>(null)
   const mapInitializedRef = useRef<boolean>(false)
-  const markerEventHandlersRef = useRef<Map<LeafletMarker, { mouseover: () => void }>>(new Map())
-  const markerClusterGroupRef = useRef<{ addLayer: (layer: any) => void; clearLayers: () => void } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return
@@ -97,7 +54,7 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
 
       const L = (await import('leaflet')).default
       await import('leaflet.markercluster')
-      
+
       if (!L.markerClusterGroup) {
         const MarkerClusterModule = await import('leaflet.markercluster')
         const MarkerClusterGroup = (MarkerClusterModule as any).default?.MarkerClusterGroup || 
@@ -177,61 +134,25 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
 
       map.addLayer(markerClusterGroup)
       markerClusterGroupRef.current = markerClusterGroup
-      
-      // Fonction pour désactiver le focus sur les contrôles et clusters
-      const disableMapFocus = () => {
-        // Désactiver le focus sur les contrôles de la carte (zoom, etc.)
-        const controlLinks = container.querySelectorAll('.leaflet-control a')
-        controlLinks.forEach((link) => {
-          (link as HTMLElement).setAttribute('tabindex', '-1')
-        })
-        
-        // Désactiver le focus sur les clusters
-        const clusters = container.querySelectorAll('.marker-cluster')
-        clusters.forEach((cluster) => {
-          (cluster as HTMLElement).setAttribute('tabindex', '-1')
-        })
-        
-        // Désactiver le focus sur tous les marqueurs
-        const markers = container.querySelectorAll('.leaflet-marker-icon')
-        markers.forEach((marker) => {
-          (marker as HTMLElement).setAttribute('tabindex', '-1')
-        })
-      }
-      
-      const timers: NodeJS.Timeout[] = []
-      timers.push(setTimeout(disableMapFocus, 100))
-      timers.push(setTimeout(disableMapFocus, 500))
-      timers.push(setTimeout(disableMapFocus, 1000))
-      
-      const observer = new MutationObserver(disableMapFocus)
-      observer.observe(container, {
-        childList: true,
-        subtree: true
-      })
 
       const formatDistance = (lat: number, lng: number): string | null => {
         const userPos = userPositionRef.current
+        if (!userPos) return null
 
-        const fromUser =
-          userPos != null
-            ? (() => {
-                const R = 6371e3 // metres
-                const toRad = (deg: number) => (deg * Math.PI) / 180
-                const φ1 = toRad(userPos[0])
-                const φ2 = toRad(lat)
-                const Δφ = toRad(lat - userPos[0])
-                const Δλ = toRad(lng - userPos[1])
+        const R = 6371e3 // metres
+        const toRad = (deg: number) => (deg * Math.PI) / 180
+        const φ1 = toRad(userPos[0])
+        const φ2 = toRad(lat)
+        const Δφ = toRad(lat - userPos[0])
+        const Δλ = toRad(lng - userPos[1])
 
-                const a =
-                  Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                  Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-                return R * c
-              })()
-            : null
+        const a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        const fromUser = R * c
 
-        if (fromUser == null || Number.isNaN(fromUser)) return null
+        if (Number.isNaN(fromUser)) return null
 
         if (fromUser >= 1000) {
           const km = fromUser / 1000
@@ -242,16 +163,6 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
         return `${rounded} m`
       }
 
-      const getPhone = (fields: Hospital['fields']): string | null => {
-        const anyFields = fields as Record<string, unknown>
-        const phone =
-          (anyFields.phone as string | undefined) ||
-          (anyFields.telephone as string | undefined) ||
-          (anyFields.tel as string | undefined)
-        if (!phone) return null
-        return phone.trim()
-      }
-
       const createPopupHTML = (hospital: Hospital, lat: number, lng: number): string => {
         const userPos = userPositionRef.current
         let itineraryUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
@@ -260,9 +171,9 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
           itineraryUrl += `&origin=${userPos[0]},${userPos[1]}`
         }
         const distanceLabel = formatDistance(lat, lng)
-        const phone = getPhone(hospital.fields)
-        const phoneHref = phone ? `tel:${phone.replace(/\s+/g, '')}` : null
-        const hospitalName = hospital.fields.name
+        const phone = hospital.phone ?? ''
+        const phoneHref = phone ? `tel:${phone.replace(/\s+/g, '')}` : '#'
+        const hospitalName = hospital.name
         
         return `
           <div style="
@@ -352,160 +263,60 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
         `
       }
 
-      const updatePopups = () => {
-        hospitalsDataRef.current.forEach(({ hospital, coords }) => {
-          const [lat, lng] = coords
-          const marker = markersRef.current.find(m => {
-            const markerLatLng = m.getLatLng()
-            return Math.abs(markerLatLng.lat - lat) < 0.0001 && Math.abs(markerLatLng.lng - lng) < 0.0001
+      const drawMarkers = () => {
+        if (!markerClusterGroupRef.current) return
+
+        // Clear existing markers
+        markerClusterGroupRef.current.clearLayers()
+        markersRef.current = []
+
+        let focusMarker: LeafletMarker | null = null
+        let focusCoords: [number, number] | null = null
+
+        hospitals.forEach((hospital) => {
+          if (hospital.latitude == null || hospital.longitude == null) return
+
+          const lat = hospital.latitude
+          const lng = hospital.longitude
+          const popupContent = createPopupHTML(hospital, lat, lng)
+
+          const marker = L.marker([lat, lng], { 
+            icon: redIcon,
+            keyboard: false
           })
-          
-          if (marker) {
-            const newPopupContent = createPopupHTML(hospital, lat, lng)
-            marker.setPopupContent(newPopupContent)
+            .bindPopup(popupContent, {
+              className: 'hospital-popup',
+              closeButton: true,
+              autoClose: false,
+              closeOnClick: false,
+            })
+            .on('click', () => {
+              onSelectHospital?.(hospital)
+            })
+
+          markerClusterGroupRef.current.addLayer(marker)
+          markersRef.current.push(marker)
+
+          if (focusRecordId && hospital.code === focusRecordId) {
+            focusMarker = marker
+            focusCoords = [lat, lng]
           }
         })
-      }
 
-      const loadHospitals = async (latitude: number, longitude: number) => {
-        try {
-          const hospitals = await getHospitals(latitude, longitude)
-          
-          if (hospitals.length === 0) {
-            return
-          }
-
-          const mapInstance = mapInstanceRef.current
-          if (!mapInstance || !mapInstance.getContainer()) {
-            console.error('Map container not ready')
-            return
-          }
-
-          let focusMarker: LeafletMarker | null = null
-          let focusCoords: [number, number] | null = null
-          
-          hospitalsDataRef.current = []
-          
-          hospitals.forEach((hospital) => {
-            const coords = extractCoordinates(hospital)
-            if (!coords) {
-              return
-            }
-
-            const [lat, lng] = coords
-            hospitalsDataRef.current.push({ hospital, coords })
-            
-            const popupContent = createPopupHTML(hospital, lat, lng)
-            
-            if (!mapInstanceRef.current) return
-
-            const marker = L.marker([lat, lng], { 
-              icon: redIcon,
-              keyboard: false
-            })
-              .bindPopup(popupContent, {
-                className: 'hospital-popup',
-                closeButton: true,
-                autoClose: false,
-                closeOnClick: false,
-              })
-              .on('popupopen', () => {
-                // Désactiver le focus sur le bouton de fermeture du popup
-                const closeButton = container.querySelector('.leaflet-popup-close-button') as HTMLElement
-                if (closeButton) {
-                  closeButton.setAttribute('tabindex', '-1')
-                }
-              })
-            
-            const handleMouseOver = () => {
-              marker.openPopup()
-            }
-            marker.on('mouseover', handleMouseOver)
-            markerEventHandlersRef.current.set(marker, { mouseover: handleMouseOver })
-
-            if (markerClusterGroupRef.current) {
-              markerClusterGroupRef.current.addLayer(marker)
-            }
-            
-            markersRef.current.push(marker)
-
-            if (focusRecordId && hospital.recordid === focusRecordId) {
-              focusMarker = marker
-              focusCoords = [lat, lng]
-            }
-          })
-
-          if (focusMarker && focusCoords && mapInstanceRef.current) {
-            const zoomToUse = initialZoom ?? 16
-            mapInstanceRef.current.setView(focusCoords, zoomToUse)
-            mapInitializedRef.current = true
-            ;(focusMarker as LeafletMarker).openPopup()
-          }
-        } catch (error) {
-          console.error('Error loading hospitals:', error)
+        if (focusMarker && focusCoords && mapInstanceRef.current) {
+          const zoomToUse = initialZoom ?? 16
+          mapInstanceRef.current.setView(focusCoords, zoomToUse)
+          ;(focusMarker as LeafletMarker).openPopup()
         }
       }
 
-      const logError = (...args: any[]) => {
-        const message = args[0]?.toString() || ''
-        if (message.includes('runtime.lastError') || message.includes('Receiving end does not exist')) {
-          return
-        }
-        console.error(...args)
-      }
-
-      const isValidCoordinates = (lat: number, lng: number): boolean => {
-        return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
-      }
-      
-      const centerMapOnCoords = (coords: [number, number], zoom: number = DEFAULT_ZOOM) => {
-        if (!mapInitializedRef.current && mapInstanceRef.current) {
-          mapInstanceRef.current.setView(coords, zoom)
-          mapInitializedRef.current = true
-        }
-      }
-
-      if (initialCenter && isValidCoordinates(initialCenter[0], initialCenter[1])) {
-        userPositionRef.current = null
-        if (!focusRecordId) {
-          const zoomToUse = initialZoom ?? DEFAULT_ZOOM
-          centerMapOnCoords(initialCenter, zoomToUse)
-        }
-        await loadHospitals(initialCenter[0], initialCenter[1])
-        updatePopups()
-      } else if ("geolocation" in navigator) {
+      // Track user Geolocation and add marker
+      if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
+          (position) => {
             const { latitude, longitude } = position.coords
-            
-            // Debug: log user position
-            console.log('User position:', latitude, longitude)
-            
-            // Validate coordinates before using them
-            if (!isValidCoordinates(latitude, longitude)) {
-              logError('Invalid coordinates detected, using Paris as fallback:', latitude, longitude)
-              // Use Paris coordinates instead
-              userPositionRef.current = PARIS_COORDS
-              
-              // Add user location marker at Paris
-              if (userMarkerRef.current) {
-                userMarkerRef.current.remove()
-              }
-              userMarkerRef.current = L.marker(PARIS_COORDS, { 
-                icon: userIcon,
-                zIndexOffset: 1000,
-                keyboard: false
-              })
-                .addTo(map)
-                .bindPopup('Votre position (approximative)', { closeButton: false })
-              
-              centerMapOnCoords(PARIS_COORDS)
-              await loadHospitals(PARIS_COORDS[0], PARIS_COORDS[1])
-              return
-            }
-            
             userPositionRef.current = [latitude, longitude]
-            
+
             if (userMarkerRef.current) {
               userMarkerRef.current.remove()
             }
@@ -516,77 +327,46 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
             })
               .addTo(map)
               .bindPopup('Votre position', { closeButton: false })
-            
-            centerMapOnCoords([latitude, longitude])
-            
-            await loadHospitals(latitude, longitude)
-            
-            updatePopups()
-          },
-          async (error) => {
-            logError('❌ MapComponent - Erreur:', error.code, error.message)
 
-            if (error.code === 1) {
-              console.warn("🚫 Géolocalisation refusée par l'utilisateur")
-            } else if (error.code === 2) {
-              console.warn('📍 Position indisponible')
-            } else if (error.code === 3) {
-              console.warn('⏱️ Timeout de géolocalisation')
-            } else {
-              logError("Geolocation error:", error)
+            if (!mapInitializedRef.current) {
+              map.setView([latitude, longitude], DEFAULT_ZOOM)
+              mapInitializedRef.current = true
             }
 
-            // Don't set userPositionRef if geolocation failed or was denied
-            // This way Google Maps will use the user's current location automatically
-            userPositionRef.current = null
-            
-            // Ensure the map is initialized before fallback
-            centerMapOnCoords(PARIS_COORDS)
-
-            // Fallback to Paris for loading hospitals
-            await loadHospitals(PARIS_COORDS[0], PARIS_COORDS[1])
+            drawMarkers()
           },
-          {
-            timeout: 10000,
-            enableHighAccuracy: false,
+          () => {
+            // Geolocation error fallback
+            userPositionRef.current = PARIS_COORDS
+            if (userMarkerRef.current) {
+              userMarkerRef.current.remove()
+            }
+            userMarkerRef.current = L.marker(PARIS_COORDS, { 
+              icon: userIcon,
+              zIndexOffset: 1000,
+              keyboard: false
+            })
+              .addTo(map)
+              .bindPopup('Votre position (Paris)', { closeButton: false })
+
+            if (!mapInitializedRef.current) {
+              map.setView(PARIS_COORDS, PARIS_FALLBACK_ZOOM)
+              mapInitializedRef.current = true
+            }
+
+            drawMarkers()
           }
         )
       } else {
-        userPositionRef.current = null
-        centerMapOnCoords(PARIS_COORDS)
-        await loadHospitals(PARIS_COORDS[0], PARIS_COORDS[1])
+        drawMarkers()
       }
-      
-      // Pas de return nécessaire
+
+      // Re-trigger drawMarkers whenever hospitals array changes
+      drawMarkers()
     }
 
     initMap()
-
-    return () => {
-      markerEventHandlersRef.current.forEach((handlers, marker) => {
-        marker.off('mouseover', handlers.mouseover)
-      })
-      markerEventHandlersRef.current.clear()
-      
-      if (markerClusterGroupRef.current) {
-        markerClusterGroupRef.current.clearLayers()
-        markerClusterGroupRef.current = null
-      }
-      
-      markersRef.current.forEach(marker => marker.remove())
-      markersRef.current = []
-      
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove()
-        userMarkerRef.current = null
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
-      }
-    }
-  }, [])
-
+  }, [hospitals, initialCenter, initialZoom, focusRecordId, onSelectHospital])
 
   const mapClasses = fullScreen
     ? "w-full h-full"
@@ -634,7 +414,7 @@ function MapContent({ fullScreen = false, initialCenter, initialZoom, focusRecor
   )
 }
 
-interface MapComponentProps {
+interface MapContentProps {
   fullScreen?: boolean
 }
 

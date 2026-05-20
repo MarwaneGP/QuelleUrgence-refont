@@ -6,6 +6,7 @@ import HospitalList from '@/components/hopitaux/HospitalList';
 import MapWrapper from '@/components/MapWrapper';
 import Loading from '@/components/Loading';
 import ErrorMessage from '@/components/ErrorMessage';
+import HospitalDetail from '@/components/hopitaux/HospitalDetail';
 
 interface AttendanceSnapshot {
   PAM: number | null;
@@ -183,7 +184,7 @@ export default function HopitauxPage() {
       <Header />
       <main
         id="main-content"
-        className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300 pb-16 md:pb-0 md:pl-64 flex flex-col h-screen overflow-hidden"
+        className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300 pb-16 md:pb-0 flex flex-col h-screen overflow-hidden"
         tabIndex={-1}
       >
         {/* Top bar on Mobile containing view mode segmented switches */}
@@ -311,34 +312,18 @@ export default function HopitauxPage() {
               fullScreen
               initialCenter={mapCenter}
               initialZoom={activeHospital ? 15 : undefined}
+              hospitals={filteredHospitals}
+              onSelectHospital={handleHospitalSelect}
             />
-
-            {/* Float selection card on mobile view map overlay */}
-            {activeHospital && (
-              <div className="absolute bottom-4 left-4 right-4 bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-2xl p-4 shadow-[var(--shadow-premium)] z-[500] animate-fade-in md:hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-sm font-extrabold text-[var(--text-main)] max-w-[70%] leading-tight">
-                    {activeHospital.name}
-                  </h4>
-                  <button
-                    onClick={() => setActiveHospital(null)}
-                    className="text-[var(--text-light)] hover:text-[var(--text-main)] p-0.5 rounded-full"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex items-center justify-between text-xs mt-3">
-                  <span className="text-[var(--text-muted)] font-semibold">2.5 km · 10 min en voiture</span>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[var(--success-light)] text-[var(--success)] border border-[var(--success-border)] uppercase">
-                    Disponible
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {activeHospital && (
+          <HospitalDetail
+            hospital={activeHospital}
+            onClose={() => setActiveHospital(null)}
+          />
+        )}
       </main>
     </>
   );
