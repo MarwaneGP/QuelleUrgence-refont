@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { listOperatorCalls, saveOperatorCall } from '@/lib/operatorCalls';
 import { CreateOperatorCallInput } from '@/types/operator';
 
-/**
- * POST /api/operators/calls
- * Enregistre un nouvel appel d'urgence depuis un opérateur
- * 
- * Body: CreateOperatorCallInput
- * - operatorId: ID de l'opérateur
- * - caller: Informations du patient/appelant
- * - location: Localisation de l'urgence
- * - event: Détails de l'événement
- * - vitalAssessment: Bilan vital
- * - remarqueGenerale?: Notes supplémentaires
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validation basique
     if (!body.operatorId) {
       return NextResponse.json(
         { error: 'operatorId est requis' },
@@ -27,38 +15,33 @@ export async function POST(request: NextRequest) {
 
     if (!body.caller || !body.location || !body.event || !body.vitalAssessment) {
       return NextResponse.json(
-        { error: 'Données incomplètes' },
+        { error: 'Donnees incompletes' },
         { status: 400 }
       );
     }
 
-    // TODO: Implémenter la sauvegarde en base de données
-    // - Connecter à Supabase
-    // - Valider et nettoyer les données
-    // - Insérer dans la table appropriée
-    // - Retourner l'ID et les données sauvegardées
-
-    // Pour maintenant, simuler la réponse
     const callData: CreateOperatorCallInput = body;
-    const id = `CALL-${Date.now()}`;
+    const savedCall = saveOperatorCall(callData);
 
-    console.log('Nouvel appel enregistré:', { id, ...callData });
+    console.log('Nouvel appel enregistre:', {
+      id: savedCall.id,
+      operatorId: savedCall.operatorId,
+      hospitalLinkUrl: savedCall.hospitalLinkUrl,
+    });
+    console.log(`Lien hopital unique: ${savedCall.hospitalLinkUrl}`);
 
     return NextResponse.json(
       {
-        id,
+        id: savedCall.id,
         success: true,
-        message: 'Appel enregistré avec succès',
-        data: {
-          ...callData,
-          id,
-          createdAt: new Date().toISOString(),
-        },
+        message: 'Appel enregistre avec succes',
+        hospitalLinkUrl: savedCall.hospitalLinkUrl,
+        data: savedCall,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement de l\'appel:', error);
+    console.error("Erreur lors de l'enregistrement de l'appel:", error);
 
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
@@ -67,10 +50,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET /api/operators/calls
- * Récupère les appels d'un opérateur
- */
 export async function GET(request: NextRequest) {
   try {
     const operatorId = request.nextUrl.searchParams.get('operatorId');
@@ -83,18 +62,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Récupérer les appels de cet opérateur depuis Supabase
+    const calls = listOperatorCalls(operatorId, Number.parseInt(limit, 10) || 50);
 
     return NextResponse.json(
       {
-        calls: [],
-        total: 0,
-        message: 'Pas d\'appels trouvés pour cet opérateur',
+        calls,
+        total: calls.length,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Erreur lors de la récupération des appels:', error);
+    console.error('Erreur lors de la recuperation des appels:', error);
 
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
