@@ -1,0 +1,39 @@
+{
+  "operatorId": "39dd69d6-5b58-426a-bc99-3f45b504309c",
+  "caller": {
+    "telephone": "0781974084",
+    "nom": "test",
+    "prenom": "l",
+    "age": 0,
+    "sexe": "homme"
+  },
+  "location": {
+    "ville": "Paris",
+    "adresse_rue_et_num": "Rue d'Amsterdam, 75008, Paris",
+    "adresse_complements": "",
+    "latitude": 48.87653,
+    "longitude": 2.3252374
+  },
+  "event": {
+    "type_incident": [
+      "Malaise"
+    ],
+    "service_concerne_hopital": [
+      "Traumatologie"
+    ],
+    "nombre_personnes": 1,
+    "depuis_quand": "3h",
+    "details_evenement": "chute"
+  },
+  "vitalAssessment": {
+    "etat_conscience": "Somnolent",
+    "etat_respiration": "Respiration rapide (> 20/min)",
+    "etat_saignement": "Saignement important",
+    "etat_parole": "Trouble du langage"
+  },
+  "id": "CALL-1779300510955-509E8128",
+  "createdAt": "2026-05-20T18:08:30.955Z",
+  "updatedAt": "2026-05-20T18:08:30.955Z",
+  "hospitalLinkToken": "HojMVtZtqcQWg0wZSYemkOxs7gL8Se8l",
+  "hospitalLinkUrl": "http://localhost:3000/hopitaux/lien/HojMVtZtqcQWg0wZSYemkOxs7gL8Se8l"
+}

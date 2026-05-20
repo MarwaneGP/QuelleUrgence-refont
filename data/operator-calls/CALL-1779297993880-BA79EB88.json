@@ -1,0 +1,37 @@
+{
+  "operatorId": "current-operator-id",
+  "caller": {
+    "telephone": "0781974084",
+    "nom": "test",
+    "prenom": "test",
+    "age": 0,
+    "sexe": "femme"
+  },
+  "location": {
+    "ville": "Paris",
+    "adresse_rue_et_num": "13 Rue d'Amsterdam",
+    "adresse_complements": ""
+  },
+  "event": {
+    "type_incident": [
+      "Traumatisme / chute"
+    ],
+    "service_concerne_hopital": [
+      "Traumatologie"
+    ],
+    "nombre_personnes": 1,
+    "depuis_quand": "1h",
+    "details_evenement": "chute grave"
+  },
+  "vitalAssessment": {
+    "etat_conscience": "Confus / désorienté",
+    "etat_respiration": "Respiration normale",
+    "etat_saignement": "Saignement léger",
+    "etat_parole": "Parole normale"
+  },
+  "id": "CALL-1779297993880-BA79EB88",
+  "createdAt": "2026-05-20T17:26:33.880Z",
+  "updatedAt": "2026-05-20T17:26:33.880Z",
+  "hospitalLinkToken": "hRxzkF_nsts_3z0f09K_FwWBIrSmqi4s",
+  "hospitalLinkUrl": "http://localhost:3000/hopitaux/lien/hRxzkF_nsts_3z0f09K_FwWBIrSmqi4s"
+}
