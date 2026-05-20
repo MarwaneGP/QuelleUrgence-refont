@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Header from "@/components/Header";
@@ -9,21 +9,17 @@ export default function OperateurPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const operatorId = process.env.NEXT_PUBLIC_OPERATOR_ID ?? "";
 
   const handleFormSubmit = async (callData: CreateOperatorCallInput) => {
     setError(null);
     setLoading(true);
 
     try {
-      const operatorId = "current-operator-id";
-
       const response = await fetch("/api/operators/calls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...callData,
-          operatorId,
-        }),
+        body: JSON.stringify(callData),
       });
 
       if (!response.ok) {
@@ -34,7 +30,7 @@ export default function OperateurPage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 5000);
 
-      console.log("Appel enregistré avec succès");
+      console.log("Appel enregistrÃ© avec succÃ¨s");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
@@ -55,30 +51,36 @@ export default function OperateurPage() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-main)]">
-                Déclarer une urgence
+                DÃ©clarer une urgence
               </h1>
             </div>
             <p className="text-xs md:text-sm text-[var(--text-muted)] font-semibold -mt-2">
-              Remplissez ce formulaire pour signaler une situation d&apos;urgence. Un opérateur prendra en charge votre demande rapidement.
+              Remplissez ce formulaire pour signaler une situation d&apos;urgence. Un opÃ©rateur prendra en charge votre demande rapidement.
             </p>
           </div>
 
           {error && (
             <div className="p-4 bg-[var(--danger-light)] border-l-4 border-[var(--danger)] text-[var(--danger)] rounded-[var(--border-radius-sm)] text-sm font-semibold shadow-sm">
-              ✗ {error}
+              âœ— {error}
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left side: The progressive wizard call form */}
             <div className="lg:col-span-7 w-full">
-              <OperatorCallForm
-                operatorId="current-operator-id"
-                onSubmit={handleFormSubmit}
-                loading={loading}
-                error={error}
-                success={success}
-              />
+              {!operatorId ? (
+                <div className="bg-[var(--bg-frame)] border border-[var(--border-color)] rounded-3xl p-6 text-sm font-semibold text-[var(--danger)]">
+                  Variable manquante: configurez NEXT_PUBLIC_OPERATOR_ID dans .env
+                </div>
+              ) : (
+                <OperatorCallForm
+                  operatorId={operatorId}
+                  onSubmit={handleFormSubmit}
+                  loading={loading}
+                  error={error}
+                  success={success}
+                />
+              )}
             </div>
 
             {/* Right side: User-friendly guidance */}
@@ -89,7 +91,7 @@ export default function OperateurPage() {
                   <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Comment ça marche ?
+                  Comment Ã§a marche ?
                 </h3>
 
                 <div className="space-y-3.5">
@@ -100,7 +102,7 @@ export default function OperateurPage() {
                     <div>
                       <strong className="block text-[11px] text-[var(--text-main)]">Remplissez le formulaire</strong>
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
-                        Décrivez la situation étape par étape : identité, localisation, nature de l&apos;incident et état de la victime.
+                        DÃ©crivez la situation Ã©tape par Ã©tape : identitÃ©, localisation, nature de l&apos;incident et Ã©tat de la victime.
                       </p>
                     </div>
                   </div>
@@ -110,9 +112,9 @@ export default function OperateurPage() {
                       2
                     </span>
                     <div>
-                      <strong className="block text-[11px] text-[var(--text-main)]">Un opérateur analyse votre demande</strong>
+                      <strong className="block text-[11px] text-[var(--text-main)]">Un opÃ©rateur analyse votre demande</strong>
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
-                        Votre fiche est transmise instantanément à un opérateur de régulation qui évalue la gravité et la priorité.
+                        Votre fiche est transmise instantanÃ©ment Ã  un opÃ©rateur de rÃ©gulation qui Ã©value la gravitÃ© et la prioritÃ©.
                       </p>
                     </div>
                   </div>
@@ -122,9 +124,9 @@ export default function OperateurPage() {
                       3
                     </span>
                     <div>
-                      <strong className="block text-[11px] text-[var(--text-main)]">Orientation vers l&apos;hôpital le plus adapté</strong>
+                      <strong className="block text-[11px] text-[var(--text-main)]">Orientation vers l&apos;hÃ´pital le plus adaptÃ©</strong>
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
-                        Vous recevez une recommandation d&apos;hôpital avec le temps d&apos;attente estimé et un itinéraire.
+                        Vous recevez une recommandation d&apos;hÃ´pital avec le temps d&apos;attente estimÃ© et un itinÃ©raire.
                       </p>
                     </div>
                   </div>
@@ -148,7 +150,7 @@ export default function OperateurPage() {
                       </svg>
                     </span>
                     <p className="text-[10px] text-[var(--text-muted)] leading-snug">
-                      <strong className="text-[var(--text-main)]">Soyez précis sur l&apos;adresse</strong> — numéro de rue, code postal, digicode ou étage si applicable.
+                      <strong className="text-[var(--text-main)]">Soyez prÃ©cis sur l&apos;adresse</strong> â€” numÃ©ro de rue, code postal, digicode ou Ã©tage si applicable.
                     </p>
                   </div>
 
@@ -159,7 +161,7 @@ export default function OperateurPage() {
                       </svg>
                     </span>
                     <p className="text-[10px] text-[var(--text-muted)] leading-snug">
-                      <strong className="text-[var(--text-main)]">Décrivez les symptômes observés</strong> — même les détails qui semblent mineurs peuvent aider au triage.
+                      <strong className="text-[var(--text-main)]">DÃ©crivez les symptÃ´mes observÃ©s</strong> â€” mÃªme les dÃ©tails qui semblent mineurs peuvent aider au triage.
                     </p>
                   </div>
 
@@ -170,7 +172,7 @@ export default function OperateurPage() {
                       </svg>
                     </span>
                     <p className="text-[10px] text-[var(--text-muted)] leading-snug">
-                      <strong className="text-[var(--text-main)]">Gardez votre téléphone accessible</strong> — un opérateur pourrait vous rappeler pour obtenir plus de détails.
+                      <strong className="text-[var(--text-main)]">Gardez votre tÃ©lÃ©phone accessible</strong> â€” un opÃ©rateur pourrait vous rappeler pour obtenir plus de dÃ©tails.
                     </p>
                   </div>
                 </div>
@@ -185,9 +187,9 @@ export default function OperateurPage() {
                     </svg>
                   </span>
                   <div>
-                    <h4 className="text-xs font-extrabold text-red-700">Urgence vitale immédiate ?</h4>
+                    <h4 className="text-xs font-extrabold text-red-700">Urgence vitale immÃ©diate ?</h4>
                     <p className="text-[10px] text-red-600/80 mt-1 leading-snug">
-                      Si la personne est inconsciente, ne respire plus ou saigne abondamment, appelez immédiatement le <strong>15 (SAMU)</strong> ou le <strong>112</strong>. Ne perdez pas de temps à remplir ce formulaire.
+                      Si la personne est inconsciente, ne respire plus ou saigne abondamment, appelez immÃ©diatement le <strong>15 (SAMU)</strong> ou le <strong>112</strong>. Ne perdez pas de temps Ã  remplir ce formulaire.
                     </p>
                   </div>
                 </div>
@@ -199,3 +201,6 @@ export default function OperateurPage() {
     </>
   );
 }
+
+
+

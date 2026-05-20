@@ -60,6 +60,7 @@ export interface OperatorCall {
   operatorId: string;
   createdAt?: string;
   updatedAt?: string;
+  status?: 'new' | 'in_progress' | 'closed';
   
   // Sections du formulaire
   caller: CallerInfo;

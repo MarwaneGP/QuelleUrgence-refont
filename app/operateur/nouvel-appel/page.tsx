@@ -9,27 +9,22 @@ export default function NouvelAppelPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const operatorId = process.env.NEXT_PUBLIC_OPERATOR_ID ?? '';
 
   const handleFormSubmit = async (callData: CreateOperatorCallInput) => {
     setError(null);
     setLoading(true);
 
     try {
-      // TODO: Remplacer par le vrai ID de l'opérateur connecté
-      const operatorId = 'current-operator-id';
-
       const response = await fetch('/api/operators/calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...callData,
-          operatorId,
-        }),
+        body: JSON.stringify(callData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erreur lors de l\'enregistrement');
+        throw new Error(errorData.error || "Erreur lors de l'enregistrement");
       }
 
       const result = await response.json();
@@ -54,19 +49,24 @@ export default function NouvelAppelPage() {
         <p>Remplissez le formulaire avec les informations du patient/victime</p>
       </div>
 
-      {error && (
-        <div className={styles.errorMessage}>
-          ✗ {error}
-        </div>
-      )}
+      {error && <div className={styles.errorMessage}>x {error}</div>}
 
-      <OperatorCallForm
-        operatorId="current-operator-id" // TODO: Récupérer depuis le contexte d'authentification
-        onSubmit={handleFormSubmit}
-        loading={loading}
-        error={error}
-        success={success}
-      />
+      {!operatorId ? (
+        <div className={styles.errorMessage}>
+          Variable manquante: configurez NEXT_PUBLIC_OPERATOR_ID dans .env
+        </div>
+      ) : (
+        <OperatorCallForm
+          operatorId={operatorId}
+          onSubmit={handleFormSubmit}
+          loading={loading}
+          error={error}
+          success={success}
+        />
+      )}
     </div>
   );
 }
+
+
+
